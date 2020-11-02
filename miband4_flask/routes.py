@@ -28,12 +28,8 @@ def connect(mac_add, auth_key):
     #if already connected
     band = global_var.band
     if(band is not None):
-        return jsonify(software_revision=band.get_revision(),
-                    hardware_revision=band.get_revision(),
-                    serial=band.get_serial(),
-                    battery=band.get_battery_info()['level'],
-                    time=band.get_current_time()['date'].isoformat())
-
+        return 'This device has been paired. Unpair?'
+            
     #if not connected yet
     #check to see if dtb has already had the data or not
     #....
@@ -45,13 +41,15 @@ def connect(mac_add, auth_key):
     #....
     #Convert Auth Key from hex to byte format
     if auth_key:
-        auth_key = bytes.fromhex(auth_key)
+        auth_key_byte = bytes.fromhex(auth_key)
     success = False
     while not success:
         try:
             if (auth_key):
-                global_var.band = miband(mac_add, auth_key, debug=True)
+                global_var.band = miband(mac_add, auth_key_byte, debug=True)
                 success = global_var.band.initialize()
+                global_var.mac_add = mac_add
+                global_var.auth_key = auth_key
             else:
                 global_var.band = miband(mac_add, debug=True)
                 success = True
@@ -64,10 +62,20 @@ def connect(mac_add, auth_key):
         except KeyboardInterrupt: #close browser?
             print("\nExit.")
             exit()
-    #insert dtb
-    #...
+    return 'Successfully paired'
 
-    return 'Connected, please reload to view  info'
+
+@app.route('/getinfo')
+def get_device_info():
+    #if paired
+    band = global_var.band
+    return jsonify(software_revision=band.get_revision(),
+                    hardware_revision=band.get_revision(),
+                    serial=band.get_serial(),
+                    battery=band.get_battery_info()['level'],
+                    mac_address=global_var.mac_add,
+                    auth_key=global_var.auth_key,
+                    time=band.get_current_time()['date'].isoformat())
     
 
 @app.route("/heartrate/once")
