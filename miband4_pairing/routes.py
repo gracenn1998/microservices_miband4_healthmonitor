@@ -1,5 +1,5 @@
 from flask import jsonify
-from miband4_flask import app
+from miband4_pairing import app
 import argparse
 import subprocess
 import time
@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from bluepy.btle import BTLEDisconnectError
 from miband4.miband import miband
 
-from miband4_flask import global_var
+from miband4_pairing import global_var
 
 
 @app.route("/")

@@ -2,7 +2,7 @@ from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
 
 
-from database import app, db
+from miband4_database import app, db
 
 
 migrate = Migrate(app, db)

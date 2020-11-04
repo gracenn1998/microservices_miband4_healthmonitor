@@ -1,4 +1,4 @@
-from miband4_flask import app
+from miband4_database import app, db
 
 
 if __name__ == '__main__':

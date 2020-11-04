@@ -1,4 +1,4 @@
-from database import db
+from miband4_database import db
 
 class Miband4(db.Model):
     __tablename__ = 'miband4_devices'
