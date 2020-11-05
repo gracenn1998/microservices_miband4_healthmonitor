@@ -1,4 +1,4 @@
-from miband4_pairing import app
+from miband4_api import app
 from miband4_database import manager
 
 if __name__ == '__main__':
