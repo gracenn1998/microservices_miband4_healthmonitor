@@ -30,18 +30,18 @@ def add_band():
     except Exception as e:
 	    return(str(e))
 
-@app.route("/getallband")
-def get_all_bands():
-    try:
-        bands=Miband4.query.all()
-        return  jsonify([band.serialize() for band in bands])
-    except Exception as e:
-	    return(str(e))
+# @app.route("/getallband")
+# def get_all_bands():
+#     try:
+#         bands=Miband4.query.all()
+#         return  jsonify([band.serialize() for band in bands])
+#     except Exception as e:
+# 	    return(str(e))
 
-@app.route("/getband/<id_>")
-def get_band_by_id(id_):
+@app.route("/getband/<id>")
+def get_band_by_id(id):
     try:
-        band=Miband4.query.filter_by(id=id_).first()
+        band=Miband4.query.filter_by(id=id).first()
         return jsonify(band.serialize())
     except Exception as e:
 	    return(str(e))
@@ -75,19 +75,32 @@ def add_logs():
     db.session.commit()
     return "Logs added"
 
-@app.route("/getalllogs")
-def get_all_logs():
-    try:
-        logs=ActivityRecord.query.all()
-        return  jsonify([log.serialize() for log in logs])
-    except Exception as e:
-	    return(str(e))
+# @app.route("/getalllogs")
+# def get_all_logs():
+#     try:
+#         logs=ActivityRecord.query.all()
+#         return  jsonify([log.serialize() for log in logs])
+#     except Exception as e:
+# 	    return(str(e))
 
 
-@app.route("/getlogs/<band_id>")
+@app.route("/getalllogs/<band_id>")
 def get_log_of(band_id):
     try:
         logs=ActivityRecord.query.filter_by(band_id=band_id)
+        return jsonify([log.serialize() for log in logs])
+    except Exception as e:
+        return(str(e))
+
+
+@app.route("/getlogsbytime/<band_id>", methods=['POST'])
+def get_log_by_timestamp_of(band_id):
+    info = request.json
+    start = datetime.datetime.strptime(info['start'], "%d.%m.%Y - %H:%M")
+    end = datetime.datetime.strptime(info['end'], "%d.%m.%Y - %H:%M")
+    try:
+        logs=ActivityRecord.query.filter_by(band_id=band_id)\
+                                .filter(ActivityRecord.timestamp.between(start, end))
         return jsonify([log.serialize() for log in logs])
     except Exception as e:
         return(str(e))
