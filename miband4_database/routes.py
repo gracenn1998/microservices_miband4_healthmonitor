@@ -1,4 +1,4 @@
-from miband4_database import app
+from miband4_database import app, db
 from flask import request, jsonify
 import datetime
 
@@ -8,13 +8,14 @@ from miband4_database.models import Miband4, ActivityRecord
 def hello():
     return "Hello World!"
 
-@app.route("/addband")
+@app.route("/addband", methods=['POST'])
 def add_band():
-    serial = request.args.get('serial')
-    sw_rev = request.args.get('sw_rev')
-    hw_rev = request.args.get('hw_rev')
-    mac = request.args.get('mac')
-    auth = request.args.get('auth')
+    bandinfo = request.json
+    serial = bandinfo['serial']
+    sw_rev = bandinfo['software_revision']
+    hw_rev = bandinfo['hardware_revision']
+    mac = bandinfo['mac_address']
+    auth = bandinfo['auth_key']
     try:
         band=Miband4(
             serial = serial,
