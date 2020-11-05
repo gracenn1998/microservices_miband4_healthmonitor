@@ -1,9 +1,10 @@
 from flask import Flask, jsonify, session
-from miband4_api import global_var
+import os
 
 
-global_var.init()
 app = Flask(__name__)
-
+app.secret_key = os.urandom(32)
 
 from miband4_api import routes
+
+
