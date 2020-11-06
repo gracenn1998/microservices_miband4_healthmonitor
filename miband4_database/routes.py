@@ -26,7 +26,7 @@ def add_band():
         )
         db.session.add(band)
         db.session.commit()
-        return "Band added. Band id={}".format(band.id)
+        return jsonify(band.serialize())
     except Exception as e:
 	    return(str(e))
 
@@ -47,10 +47,29 @@ def get_band_by_id(id):
 	    return(str(e))
 
 
-@app.route("/addlogs", methods=['POST'])
-def add_logs():
+@app.route('/updateband/<band_serial>', methods=['PUT'])
+def updateuser(band_serial):
+    bandinfo = request.json
+    sw_rev = bandinfo['software_revision']
+    hw_rev = bandinfo['hardware_revision']
+    mac = bandinfo['mac_address']
+    auth = bandinfo['auth_key']
+    try:
+        band = Miband4.query.filter_by(serial=band_serial).first()
+        band.software_revision = sw_rev
+        band.hardware_revision = hw_rev
+        band.mac_address = mac
+        band.auth_key = auth
+        db.session.commit()
+        return jsonify(band.serialize())
+    except Exception as e:
+	    return(str(e))
+
+
+
+@app.route("/addlogs/<band_id>", methods=['POST'])
+def add_logs(band_id):
     # logs = request.args.get[logs]
-    band_id = request.args.get('band_id')
     logs = request.json
     for ts in logs:
         # timestamp = time
