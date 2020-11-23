@@ -4,12 +4,12 @@ class Miband4(db.Model):
     __tablename__ = 'miband4_devices'
 
     id = db.Column(db.Integer, primary_key=True)
+    uid = db.Column(db.Integer)
     serial = db.Column(db.String(12), unique=True)
     software_revision = db.Column(db.String(10))
     hardware_revision = db.Column(db.String(10))
     mac_address = db.Column(db.String(17), nullable=False)
     auth_key = db.Column(db.String(32), nullable=False)
-    # step_records = db.relationship('StepRecord', backref='band', lazy=True)
     activities_records = db.relationship('ActivityRecord', backref='band', lazy=True)
 
     def __repr__(self):
@@ -18,6 +18,7 @@ class Miband4(db.Model):
     def serialize(self):
         return {
             'id': self.id,
+            'uid': self.uid,
             'serial': self.serial, 
             'software_revision': self.software_revision,
             'hardware_revision': self.hardware_revision,
