@@ -2,13 +2,16 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
+from flask_cors import CORS
+
 
 app = Flask(__name__)
+CORS(app)
 
 POSTGRES = {
     'user': 'postgres',
     'pw': '123123',
-    'db': 'miband4_api',
+    'db': 'miband4_dtb',
     'host': 'localhost',
     'port': '5432',
 }

@@ -12,7 +12,7 @@ CORS(app)
 POSTGRES = {
     'user' : 'postgres',
     'pw' : '123123',
-    'db' : 'user_api',
+    'db' : 'user_dtb',
     'host' : 'localhost',
     'port' : '5432'
 }

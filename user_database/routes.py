@@ -8,7 +8,6 @@ import os, hashlib
 @app.route('/adduser', methods=['POST'])
 def add_user():
     user = request.json
-    username = user['username']
     email = user['email']
     
     pw = user['password']
@@ -22,7 +21,7 @@ def add_user():
     )
 
     try:
-        new_user = User(username=username, password_hashed=hashed_pw, email=email, password_salt=salt)
+        new_user = User(password_hashed=hashed_pw, email=email, password_salt=salt)
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
@@ -31,23 +30,25 @@ def add_user():
     return jsonify(new_user.serialize())
 
 
-@app.route('/getuser/<username>')
-def getuser(username):
+@app.route('/getuser/<email>')
+def getuser(email):
     try:
-        user = User.query.filter_by(username=username).first()
-        return jsonify(user.serialize())
+        user = User.query.filter_by(email=email).first()
+        if(user):
+            return jsonify({'user': user.serialize()})
+        return jsonify({'user':None})
     except Exception as e:
         return str(e)
 
 
-@app.route('/updateuser/<username>', methods=['PUT'])
-def updateuser(username):
+@app.route('/updateuser/<email>', methods=['PUT'])
+def updateuser(email):
     try:
         userdata = request.json
         fullname = userdata['fullname']
         gender = userdata['gender']
         dob = datetime.datetime.strptime(userdata['dob'],"%d.%m.%Y")
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         user.fullname = fullname
         user.gender = gender
         user.dob = dob
@@ -57,8 +58,8 @@ def updateuser(username):
         return str(e)
 
 
-@app.route('/changepassword/<username>', methods=['PUT'])
-def change_password(username):
+@app.route('/changepassword/<email>', methods=['PUT'])
+def change_password(email):
     try:
         pw = request.json['password']
         salt = os.urandom(32)
@@ -70,7 +71,7 @@ def change_password(username):
             dklen=128
         )
 
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         user.password_hashed = hashed_pw
         user.password_salt = salt
         db.session.commit()
@@ -79,10 +80,10 @@ def change_password(username):
         return str(e)
 
 
-@app.route('/checkpassword/<username>', methods=['POST'])
-def check_password(username):
+@app.route('/checkpassword/<email>', methods=['POST'])
+def check_password(email):
     try:
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         salt = user.password_salt
         pw_to_check = request.json['password']
 
@@ -105,10 +106,10 @@ def check_password(username):
         return str(e)
 
 
-@app.route('/deleteuser/<username>')
-def delete_user(username):
+@app.route('/deleteuser/<email>')
+def delete_user(email):
     try:
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
         db.session.delete(user)
         db.session.commit()
         return 'Deleted'
