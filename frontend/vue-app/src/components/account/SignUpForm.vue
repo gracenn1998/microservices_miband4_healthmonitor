@@ -57,7 +57,7 @@
       </b-form-group>
 
       <div class="w-25 mx-auto">
-        <b-button type="submit" variant="primary">Submit</b-button>
+        <b-button type="submit" variant="primary">SignUp</b-button>
         <b-button type="reset" variant="danger">Reset</b-button>
       </div>
       </b-form>
@@ -142,15 +142,17 @@ export default {
     },
     onSubmit(evt) {
       evt.preventDefault()
-      if(this.pwState && this.cfPwState) {
-        this.validateEmail(this.form.email).then((ableToAdd)=>{
-          if(ableToAdd) {
+      //check if entered pw and cfpw are valid or not
+      if(this.pwState && this.cfPwState) { //if both are valid
+        this.validateEmail(this.form.email).then((ableToAdd)=>{ 
+          //check if email is valid or not
+          if(ableToAdd) { //if email hasnt been used
             this.addUser(this.form).then(()=>{
               this.submitStatus = 'OK'
             })
             this.submitStatus = 'PENDING'
           }
-          else {
+          else { //if email exists in dtb
             this.validEmail = false
             this.submitStatus = 'ERROR'
           }
