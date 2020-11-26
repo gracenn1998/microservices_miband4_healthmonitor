@@ -7,6 +7,11 @@ export default new VueRouter({
     mode: 'history',
     routes: [
         {
+            path: '/',
+            name: 'banner',
+            component: () => import('@/components/Jumbotron.vue')
+        },
+        {
             path: '/signup',
             name: 'signup',
             component: () => import('@/components/account/SignUpForm.vue')

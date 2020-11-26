@@ -17,7 +17,7 @@
             <router-link to="/signup">Sign Up</router-link>
           </b-button>
           <b-button variant="outline-primary">
-            <router-link to="/signup">Sign In</router-link>
+            <router-link to="/edit/accountinfo">Sign In</router-link>
           </b-button>
         </div>      
       </b-navbar-nav>

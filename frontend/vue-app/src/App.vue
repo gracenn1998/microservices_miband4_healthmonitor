@@ -15,9 +15,7 @@
 import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 // import PairDeviceForm from './components/PairDeviceForm'
-
 // import DeviceList from './components/DeviceList'
-
 export default {
   name: 'app',
   components: {
