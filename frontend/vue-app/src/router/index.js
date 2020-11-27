@@ -22,8 +22,13 @@ export default new VueRouter({
             component: () => import('@/components/account/SignInForm.vue')
         },
         {
-            path: '/edit/accountinfo',
-            name: 'edit-account-info',
+            path: '/profile',
+            name: 'profile',
+            component: () => import('@/components/account/Profile.vue')
+        },
+        {
+            path: '/profile/edit',
+            name: 'profile-edit',
             component: () => import('@/components/account/EditForm.vue')
         },
         {

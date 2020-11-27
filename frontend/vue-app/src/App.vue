@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Navbar :key="navKey" @loginStatusChange="loginUpdate"/>
-    <Sidebar />
+    <Sidebar v-if="this.$session.exists()"/>
     <router-view @loginStatusChange="loginUpdate"/>
     <!-- <PairDeviceForm />
     <Data />
@@ -20,7 +20,7 @@ export default {
   name: 'app',
   data() {
     return {
-      navKey: 0
+      navKey: false
     }
   },
   components: {
@@ -29,8 +29,7 @@ export default {
   },
   methods: {
     loginUpdate() {
-      console.log('helo???')
-      this.navKey+=1
+      this.navKey = !this.navKey
       this.$forceUpdate
     }
   }

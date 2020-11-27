@@ -1,7 +1,7 @@
 <template>
   <div>
-    <b-card class="w-50 mx-auto" style="margin-top: 5vh">
-      <div class="w-25 mx-auto mb-3">
+    <b-card class="w-50 mx-auto mt-3">
+      <div class="d-flex justify-content-center mb-3">
         <b-button variant="outline-primary">Sign Up Form</b-button>
       </div>
       <div v-if="submitStatus === 'OK'">
@@ -56,7 +56,7 @@
           ></b-form-input>
       </b-form-group>
 
-      <div class="w-25 mx-auto">
+      <div class="d-flex justify-content-center">
         <b-button type="submit" variant="primary">SignUp</b-button>
         <b-button type="reset" variant="danger">Reset</b-button>
       </div>

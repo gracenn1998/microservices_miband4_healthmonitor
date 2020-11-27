@@ -1,7 +1,7 @@
 <template>
   <div v-if="!this.$session.exists()">
-    <b-card class="w-50 mx-auto" style="margin-top: 5vh">
-      <div class="w-25 mx-auto mb-3" >
+    <b-card class="w-50 mx-auto mt-3">
+      <div class="d-flex justify-content-center mb-3" >
         <b-button variant="outline-primary">Sign In Form</b-button>
       </div>
       <div v-if="submitStatus === 'OK'">
@@ -43,7 +43,7 @@
           </b-form-checkbox-group>
       </b-form-group>
 
-      <div class="w-25 mx-auto">
+      <div class="d-flex justify-content-center">
         <b-button type="signin" variant="primary">SignIn</b-button>
         <b-button type="reset" variant="danger">Reset</b-button>
       </div>
@@ -96,7 +96,8 @@ export default {
             this.submitStatus = 'OK'
             //start session
             this.$session.start()
-            this.$session.set('user', result['user'])
+            this.$session.set('user', result)
+            console.log(this.$session.get('user'))
             //routing to homepage
             this.$emit("loginStatusChange")
             this.$router.push('/')
