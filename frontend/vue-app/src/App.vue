@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <Navbar />
+    <Navbar :key="navKey" @loginStatusChange="loginUpdate"/>
     <Sidebar />
-    <router-view />
+    <router-view @loginStatusChange="loginUpdate"/>
     <!-- <PairDeviceForm />
     <Data />
     <SignUpForm />
@@ -18,10 +18,22 @@ import Sidebar from './components/Sidebar'
 // import DeviceList from './components/DeviceList'
 export default {
   name: 'app',
+  data() {
+    return {
+      navKey: 0
+    }
+  },
   components: {
     Navbar,
     Sidebar,
-  }    
+  },
+  methods: {
+    loginUpdate() {
+      console.log('helo???')
+      this.navKey+=1
+      this.$forceUpdate
+    }
+  }
 }
 </script>
 

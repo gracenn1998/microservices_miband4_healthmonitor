@@ -8,7 +8,7 @@ export default new VueRouter({
     routes: [
         {
             path: '/',
-            name: 'banner',
+            name: 'homepage',
             component: () => import('@/components/Jumbotron.vue')
         },
         {

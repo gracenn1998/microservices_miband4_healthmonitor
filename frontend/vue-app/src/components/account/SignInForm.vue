@@ -1,7 +1,7 @@
 <template>
-  <div>
+  <div v-if="!this.$session.exists()">
     <b-card class="w-50 mx-auto" style="margin-top: 5vh">
-      <div class="w-25 mx-auto" >
+      <div class="w-25 mx-auto mb-3" >
         <b-button variant="outline-primary">Sign In Form</b-button>
       </div>
       <div v-if="submitStatus === 'OK'">
@@ -31,7 +31,6 @@
       >
           <b-form-input
             v-model="form.password"
-            :state="pwState"
             type="password"
             required
             placeholder="Enter password"
@@ -68,52 +67,44 @@ export default {
     }
   },
   methods: {
-    async getEmail(email) {
+    async signin(email, password) {
       try {
-        const response = await fetch('http://127.0.0.1:5000/getuser/'+email)
-        const result = await response.json()
-        if (result.user!=null) {
-          return result.user.email
-        }
-        return null
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    async validatePassword(email, password) {
-      try {
-        const response = await fetch('http://127.0.0.1:5000/checkpassword/'+email, {
+        const response = await fetch('http://127.0.0.1:5000/login', {
           method: 'POST',
-          body: JSON.stringify({'password': password}),
+          body: JSON.stringify({
+            'email': email,
+            'password': password
+            }),
           headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
         const result = await response.json()
-        if (result.result!='correct') {
-          return false
+        if (result['login-result']=='succeeded') { //sign in successfully
+          return result['user']
         }
-        return true
+        // if signin failed
+        return false
       } catch (error) {
         console.error(error)
       }
     },
+
     onSubmit(evt) {
       evt.preventDefault()
-      //check if email exist
-      this.getEmail(this.form.email).then((email)=> {
-        //if email exist
-        if(email!=null) {
-          this.validatePassword(email, this.form.password).then((isValid)=>{
-            if(isValid) { //if password matched
-              this.submitStatus = 'OK'
-            } else { //if wrong password
-              this.submitStatus = 'ERROR'
-            }
-          })
-          this.submitStatus = 'PENDING'
-        } else { //if email not exist
-          this.submitStatus = 'ERROR'
-        }
-      })
+      //sign in api
+      this.signin(this.form.email, this.form.password).then((result)=>{
+          if(result) { //if sign in succeeded
+            this.submitStatus = 'OK'
+            //start session
+            this.$session.start()
+            this.$session.set('user', result['user'])
+            //routing to homepage
+            this.$emit("loginStatusChange")
+            this.$router.push('/')
+          } else { //if sign in failed
+            this.submitStatus = 'ERROR'
+          }
+        })
+        this.submitStatus = 'PENDING'
     },
     
     onReset(evt) {

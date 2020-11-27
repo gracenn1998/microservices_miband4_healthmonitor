@@ -12,13 +12,16 @@
 
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <div>
+        <div v-if="!this.$session.exists()">
           <b-button variant="outline-primary">
             <router-link to="/signup">Sign Up</router-link>
           </b-button>
           <b-button variant="outline-primary">
             <router-link to="/signin">Sign In</router-link>
           </b-button>
+        </div>
+        <div v-if="this.$session.exists()" >
+          <b-button variant="outline-primary" @click="signout">Sign Out</b-button>
         </div>      
       </b-navbar-nav>
     </b-collapse>
@@ -28,10 +31,12 @@
 
 <script>
 export default {
-    
+  methods: {
+    signout() {
+      this.$session.destroy()
+      this.$emit("loginStatusChange")
+      this.$router.push('/')
+    }
+  }
 }
 </script>
-
-<style scoped>
-
-</style>
