@@ -46,12 +46,8 @@ def updateuser(email):
     try:
         userdata = request.json
         fullname = userdata['fullname']
-        gender = userdata['gender']
-        dob = datetime.datetime.strptime(userdata['dob'],"%d.%m.%Y")
         user = User.query.filter_by(email=email).first()
         user.fullname = fullname
-        user.gender = gender
-        user.dob = dob
         db.session.commit()
         return jsonify(user.serialize())
     except Exception as e:
