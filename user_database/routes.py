@@ -80,6 +80,42 @@ def change_password(email):
         return str(e)
 
 
+@app.route('/login', methods=['POST'])
+def login():
+    entered_pw = request.json['password']
+    email = request.json['email']
+    try:
+        user = User.query.filter_by(email=email).first()
+        if(user): #if user with provided email exists
+            salt = user.password_salt
+            
+            hashed_pw = hashlib.pbkdf2_hmac(
+                'sha256',
+                entered_pw.encode('utf-8'),
+                salt,
+                100000,
+                dklen=128
+            )
+
+            if(hashed_pw == user.password_hashed): #if password matched
+                print(jsonify({
+                    'user': user.serialize(),
+                    'login-result': 'succeeded'
+                }))
+                return jsonify({
+                    'user': user.serialize(),
+                    'login-result': 'succeeded'
+                })
+            return jsonify({ #if password unmatched
+                'login-result': 'failed'
+            })
+        else: 
+            return jsonify({ #if user with provided email doesnt exist
+                'login-result': 'failed'
+            })
+    except Exception as e:
+        return str(e)
+
 @app.route('/checkpassword/<email>', methods=['POST'])
 def check_password(email):
     try:
