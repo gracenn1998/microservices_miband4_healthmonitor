@@ -14,19 +14,24 @@ def add_band():
     serial = bandinfo['serial']
     sw_rev = bandinfo['software_revision']
     hw_rev = bandinfo['hardware_revision']
-    mac = bandinfo['mac_address']
+    mac = bandinfo['mac_add']
     auth = bandinfo['auth_key']
+    userid = bandinfo['uid']
     try:
         band=Miband4(
             serial = serial,
             software_revision = sw_rev,
             hardware_revision = hw_rev,
             mac_address = mac,
-            auth_key = auth
+            auth_key = auth,
+            uid = userid
         )
         db.session.add(band)
         db.session.commit()
-        return "Band added. Band id={}".format(band.id)
+        return jsonify({
+            'add-band-result': 'succeeded',
+            'band-info': band.serialize()
+        })
     except Exception as e:
 	    return(str(e))
 

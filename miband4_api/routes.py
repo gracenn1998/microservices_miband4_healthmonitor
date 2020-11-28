@@ -15,16 +15,17 @@ def connect(mac_add, auth_key):
     if auth_key:
         auth_key_byte = bytes.fromhex(auth_key)
     success = False
-    while not success:
+    maxTry=3
+    i=0
+    while (not success) and (i < maxTry) :
         try:
+            i+=1
             if (auth_key):
                 band = miband(mac_add, auth_key_byte, debug=True)
                 success = band.initialize()
+                print(success)
                 mac_add = mac_add
                 auth_key = auth_key
-            else:
-                band = miband(mac_add, debug=True)
-                success = True
             break
         except BTLEDisconnectError:
             #show in browser?
@@ -34,8 +35,10 @@ def connect(mac_add, auth_key):
         except KeyboardInterrupt: #close browser?
             print("\nExit.")
             exit()
-    session['mac_add'] = mac_add
-    session['auth_key'] = auth_key
+        except Exception as e:
+            print(e)
+            break
+    if(not success): return None
     return band
 
 @app.route("/connect", methods=['POST'])
@@ -45,42 +48,63 @@ def get_mac_and_key():
     info = request.json
     mac_add = info['mac_add']
     auth_key = info['auth_key']
-    band = connect(mac_add, auth_key)
-    # if(band is not None):
-    #     return 'This device has been paired. Unpair?'
-            
-    #if not connected yet
-    #check to see if dtb has already had the data or not
-    #....
-    #if yes -> get data from dtb
-    #if no data in dtb -> post method data -> another route
-    #Validate mac
-    #....
-    #Validate key
-    #....
-    #Convert Auth Key from hex to byte format
-    band.disconnect()
-    return 'Successfully paired. Mac address and auth key are correct'
+    
+    try: 
+        band = connect(mac_add, auth_key)
+    except Exception as e:
+        print(e)
+        return jsonify({
+            'connect-result': 'failed'
+        })
+    if(band) : #if band is not none -> paired
+        bandinfo = {
+            'software_revision': band.get_revision(),
+            'hardware_revision': band.get_revision(),
+            'serial': band.get_serial(),
+            'battery': band.get_battery_info()['level'],
+            'time': band.get_current_time()['date'].isoformat()
+        }
+        band.disconnect()
+        return jsonify({
+            'connect-result': 'succeeded',
+            'band-info': bandinfo
+        })
+    #if band is none -> failed    
+    return jsonify({
+            'connect-result': 'failed'
+        })
+ 
+@app.route('/getbandinfo/<mac_add>')
+def get_device_info(mac_add):
+    info = request.json
+    mac_add = info['mac_add']
+    auth_key = info['auth_key']
 
+    try: 
+        band = connect(mac_add, auth_key)
+    except Exception as e:
+        print(e)
+        return jsonify({
+            'connect-result': 'failed'
+        })
 
-@app.route('/getinfo')
-def get_device_info():
-    #require mac&auth in session
-    #if not -> redirect: connect
-
-    #if mac in session
-    mac_add = session['mac_add']
-    auth_key = session['auth_key']
-    band = connect(mac_add, auth_key)
-    respone = jsonify(software_revision=band.get_revision(),
+    if(band):
+        bandinfo = jsonify(software_revision=band.get_revision(),
                     hardware_revision=band.get_revision(),
                     serial=band.get_serial(),
                     battery=band.get_battery_info()['level'],
-                    mac_address=session['mac_add'],
-                    auth_key=session['auth_key'],
                     time=band.get_current_time()['date'].isoformat())
-    band.disconnect()
-    return respone 
+
+        band.disconnect()
+        res= jsonify({
+            'get-info-result': 'succeeded',
+            'band-info': bandinfo
+        })
+    else:
+        res = jsonify({
+            'get-info-result': 'failed'
+        })
+    return res
     
 
 @app.route("/heartrate/once")
