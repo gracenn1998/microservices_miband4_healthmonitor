@@ -5,12 +5,12 @@
                 <div class="d-flex justify-content-center">
                     <b-avatar :text="avatarStr" size="6rem"></b-avatar>
                 </div>
-                <b-card-title v-if="user.fullname==null&&updateMode!=true" class="text-center mt-2">
-                    <b-button variant="outline-primary" @click="enterUpdateMode">
+                <b-card-title v-if="user.fullname==null&&nameUpdateMode!=true" class="text-center mt-2">
+                    <b-button variant="outline-primary" @click="enterNameUpdateMode">
                         Please tell us your name 📝
                     </b-button>
                 </b-card-title>
-                <b-card-title v-else-if="updateMode==true" class="text-center mt-2">
+                <b-card-title v-else-if="nameUpdateMode==true" class="text-center mt-2">
                     <b-form @submit.prevent="updateName" inline class="d-flex justify-content-around">
                         <b-form-input class="w-75"
                         v-model="user.fullname"
@@ -18,13 +18,13 @@
                     ></b-form-input>
                     <div>
                         <b-button @click="updateName" variant="success" class="mr-1">OK</b-button>
-                        <b-button @click="exitUpdateMode" variant="danger">✖️</b-button>
+                        <b-button @click="exitNameUpdateMode" variant="danger">✖️</b-button>
                     </div>
                     </b-form>
                 </b-card-title>
                 <b-card-title v-else class="text-center mt-2">
                     {{user.fullname}}
-                    <b-button variant="outline-primary" @click="enterUpdateMode">📝</b-button>
+                    <b-button variant="outline-primary" @click="enterNameUpdateMode">📝</b-button>
                 </b-card-title>
                 <b-card-sub-title class="text-center">{{user.email}}</b-card-sub-title>
                 <div class="d-flex justify-content-center">
@@ -32,13 +32,10 @@
                 </div>
             </template>
 
-            <b-card title="My mibands">
-                <b-button variant="outline-primary" class="w-100">+ Add device</b-button>
-                <b-list-group flush>
-                <b-list-group-item>Cras justo odio</b-list-group-item>
-                <b-list-group-item>Dapibus ac facilisis in</b-list-group-item>
-                <b-list-group-item>Vestibulum at eros</b-list-group-item>
-                </b-list-group>
+            <b-card title="My miband">
+                <b-button variant="outline-primary" class="w-100" @click="enterAddBandMode">+ Add device</b-button>
+                <pair-device-form v-if="addBandMode" @exit-add-band-mode="exitAddBandMode"/>
+                <device-list class="mt-1"/>
             </b-card>
 
             <b-card title="More" class="mt-1">
@@ -56,8 +53,14 @@
 
 
 <script>
+import PairDeviceForm from '@/components/device/PairDeviceForm'
+import DeviceList from '@/components/device/DeviceList'
 
 export default {
+    components: { 
+        PairDeviceForm,
+        DeviceList
+    },
     created() {
         // console.log(this.user)
         this.generateAvtStr()
@@ -67,17 +70,26 @@ export default {
         return {
             user: this.$session.get('user'),
             avatarStr: '',
-            updateMode: false,
+            nameUpdateMode: false,
+            addBandMode: false
         }
     },
     methods: {
-        enterUpdateMode() {
-            this.updateMode = true
+        enterNameUpdateMode() {
+            this.nameUpdateMode = true
         },
-        exitUpdateMode() {
+        exitNameUpdateMode() {
             this.user.fullname=this.$session.get('user').fullname
-            this.updateMode = false
+            this.nameUpdateMode = false
         },
+
+        enterAddBandMode() {
+            this.addBandMode = true
+        },
+        exitAddBandMode() {
+            this.addBandMode = false
+        },
+
         generateAvtStr() {
             if(this.user.fullname!=null) {
                 var str = String(this.$session.get('user').fullname)
@@ -93,6 +105,7 @@ export default {
                 this.avatarStr=''
             }
         },
+
         async updateNameApiCall(email, newName) {
             try {
                 const response = await fetch('http://127.0.0.1:5000/updateuser/'+email, {
@@ -113,10 +126,10 @@ export default {
             this.updateNameApiCall(this.user.email, this.user.fullname).then((user)=>{
                 this.$session.set('user', user)
                 this.generateAvtStr()
-                this.exitUpdateMode()
+                this.exitNameUpdateMode()
                 // this.$forceUpdate
             })
-        }
+        },
     }
 }
 </script>
