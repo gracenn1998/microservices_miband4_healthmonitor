@@ -22,6 +22,6 @@ migrate = Migrate(app, db, directory='./miband4_database/migrations')
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
-manager.add_command('runserver', Server(host='localhost', port=5002))
+manager.add_command('runserver', Server(host='0.0.0.0', port=5002))
 
 from miband4_database import routes

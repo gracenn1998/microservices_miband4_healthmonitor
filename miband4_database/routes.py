@@ -51,6 +51,14 @@ def get_band_by_id(id):
     except Exception as e:
 	    return(str(e))
 
+@app.route("/getbandbyuser/<uid>")
+def get_band_by_user(uid):
+    try:
+        band=Miband4.query.filter_by(uid=uid).first()
+        return jsonify(band.serialize())
+    except Exception as e:
+	    return(str(e))
+
 
 @app.route("/addlogs", methods=['POST'])
 def add_logs():
@@ -109,6 +117,18 @@ def get_log_by_timestamp_of(band_id):
         return jsonify([log.serialize() for log in logs])
     except Exception as e:
         return(str(e))
+
+@app.route('/deleteband/<serial>')
+def delete_band(serial):
+    try:
+        band = Miband4.query.filter_by(serial=serial).first()
+        db.session.delete(band)
+        db.session.commit()
+        return jsonify({
+            'delete-result': 'succeeded'
+        })
+    except Exception as e:
+        return str(e)
 
 if __name__ == '__main__':
     app.run(debug=True)

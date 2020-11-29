@@ -24,6 +24,6 @@ migrate = Migrate(app, db, directory='./user_database/migrations')
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
-manager.add_command('runserver', Server(host='localhost', port=5000))
+manager.add_command('runserver', Server(host='0.0.0.0', port=5000))
 
 from user_database import routes
