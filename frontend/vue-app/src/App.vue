@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <Navbar :key="navKey" @loginStatusChange="loginUpdate"/>
-    <Sidebar v-if="this.$session.exists()"/>
+    <!-- <Sidebar v-if="this.$session.exists()"/> -->
     <router-view @loginStatusChange="loginUpdate"/>
     <!-- <PairDeviceForm />
     <Data />
@@ -13,7 +13,7 @@
 
 <script>
 import Navbar from './components/Navbar'
-import Sidebar from './components/Sidebar'
+// import Sidebar from './components/Sidebar'
 export default {
   name: 'app',
   data() {
@@ -23,7 +23,7 @@ export default {
   },
   components: {
     Navbar,
-    Sidebar,
+    // Sidebar,
   },
   methods: {
     loginUpdate() {

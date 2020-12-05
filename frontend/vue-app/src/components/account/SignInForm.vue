@@ -53,6 +53,8 @@
 </template>
 
 <script>
+var host='192.168.11.122'
+var port='5000'
 export default {
   data() {
     return {
@@ -69,7 +71,7 @@ export default {
   methods: {
     async signin(email, password) {
       try {
-        const response = await fetch('http://127.0.0.1:5000/login', {
+        const response = await fetch(`http://${host}:${port}/login`, {
           method: 'POST',
           body: JSON.stringify({
             'email': email,
@@ -97,7 +99,7 @@ export default {
             //start session
             this.$session.start()
             this.$session.set('user', result)
-            console.log(this.$session.get('user'))
+            
             //routing to homepage
             this.$emit("loginStatusChange")
             this.$router.push('/')

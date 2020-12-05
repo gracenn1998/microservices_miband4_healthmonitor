@@ -32,11 +32,7 @@
                 </div>
             </template>
 
-            <b-card title="My miband">
-                <b-button variant="outline-primary" class="w-100" @click="enterAddBandMode">+ Add device</b-button>
-                <pair-device-form v-if="addBandMode" @exit-add-band-mode="exitAddBandMode"/>
-                <device-list class="mt-1"/>
-            </b-card>
+            <device-management />
 
             <b-card title="More" class="mt-1">
                 <b-button variant="outline-primary" class="w-100">Set goal</b-button>
@@ -53,13 +49,11 @@
 
 
 <script>
-import PairDeviceForm from '@/components/device/PairDeviceForm'
-import DeviceList from '@/components/device/DeviceList'
+import DeviceManagement from '@/components/DeviceManagement'
 
 export default {
     components: { 
-        PairDeviceForm,
-        DeviceList
+        DeviceManagement
     },
     created() {
         // console.log(this.user)
@@ -71,7 +65,6 @@ export default {
             user: this.$session.get('user'),
             avatarStr: '',
             nameUpdateMode: false,
-            addBandMode: false
         }
     },
     methods: {
@@ -81,13 +74,6 @@ export default {
         exitNameUpdateMode() {
             this.user.fullname=this.$session.get('user').fullname
             this.nameUpdateMode = false
-        },
-
-        enterAddBandMode() {
-            this.addBandMode = true
-        },
-        exitAddBandMode() {
-            this.addBandMode = false
         },
 
         generateAvtStr() {
