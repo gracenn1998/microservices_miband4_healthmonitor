@@ -30,7 +30,7 @@ class Miband4(db.Model):
 class ActivityRecord(db.Model):
     # id = db.Column(db.Integer, primary_key=True)
     band_id = db.Column(db.Integer, db.ForeignKey(Miband4.id), nullable=False, primary_key=True)
-    timestamp = db.Column(db.DateTime, nullable=False, primary_key=True)
+    timestamp = db.Column(db.DateTime(timezone=True), nullable=False, primary_key=True)
     category = db.Column(db.Integer)
     intensity = db.Column(db.Integer)
     steps = db.Column(db.Integer)

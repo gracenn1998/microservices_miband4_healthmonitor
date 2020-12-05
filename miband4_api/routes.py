@@ -1,5 +1,5 @@
 from flask import jsonify, request, session
-from miband4_api import app
+from miband4_api import app, globals
 import argparse
 import subprocess
 import time
@@ -39,6 +39,8 @@ def connect(mac_add, auth_key):
             print(e)
             break
     if(not success): return None
+
+    # if succeeded
     return band
 
 @app.route("/connect", methods=['POST'])
@@ -50,13 +52,14 @@ def get_mac_and_key():
     auth_key = info['auth_key']
     
     try: 
-        band = connect(mac_add, auth_key)
+        globals.band = connect(mac_add, auth_key)
     except Exception as e:
         print(e)
         return jsonify({
             'connect-result': 'failed'
         })
-    if(band) : #if band is not none -> paired
+    if(globals.band) : #if band is not none -> paired
+        band = globals.band
         bandinfo = {
             'software_revision': band.get_revision(),
             'hardware_revision': band.get_revision(),
@@ -64,142 +67,156 @@ def get_mac_and_key():
             'battery': band.get_battery_info()['level'],
             'time': band.get_current_time()['date'].isoformat()
         }
-        band.disconnect()
-        return jsonify({
+        response = jsonify({
             'connect-result': 'succeeded',
             'band-info': bandinfo
         })
-    #if band is none -> failed    
-    return jsonify({
+    else:
+        response = jsonify({
             'connect-result': 'failed'
-        })
+        })  
+
+    return response 
  
-@app.route('/getbandinfo/<mac_add>')
-def get_device_info(mac_add):
-    info = request.json
-    mac_add = info['mac_add']
-    auth_key = info['auth_key']
 
-    try: 
-        band = connect(mac_add, auth_key)
-    except Exception as e:
-        print(e)
-        return jsonify({
-            'connect-result': 'failed'
+@app.route('/disconnect')
+def disconnect():
+    if(globals.band):
+        globals.band.disconnect()
+        globals.band = None
+        response = jsonify({
+            'disconnect-result': 'succeeded'
+        })
+    else:
+        response = jsonify({
+            'disconnect-result': 'failed'
         })
 
-    if(band):
-        bandinfo = jsonify(software_revision=band.get_revision(),
-                    hardware_revision=band.get_revision(),
-                    serial=band.get_serial(),
-                    battery=band.get_battery_info()['level'],
-                    time=band.get_current_time()['date'].isoformat())
+    return response
 
-        band.disconnect()
-        res= jsonify({
+
+
+@app.route('/getbandinfo')
+def get_band_info():
+
+    if(globals.band):
+        band = globals.band
+        bandinfo = {
+            'software_revision': band.get_revision(),
+            'hardware_revision': band.get_revision(),
+            'serial': band.get_serial(),
+            'battery': band.get_battery_info()['level'],
+            'time': band.get_current_time()['date'].isoformat()
+        }
+
+        # band.disconnect()
+        response= jsonify({
             'get-info-result': 'succeeded',
             'band-info': bandinfo
         })
     else:
-        res = jsonify({
+        response = jsonify({
             'get-info-result': 'failed'
         })
-    return res
+    return response
     
 
 @app.route("/heartrate/once")
 def get_heartrate_once():
-    #require mac&auth in session
-    #if not -> redirect: connect
-
-    #if mac in session
-    mac_add = session['mac_add']
-    auth_key = session['auth_key']
-    band = connect(mac_add, auth_key)
-
-    response = jsonify(hearrate_once=band.get_heart_rate_one_time())
-    band.disconnect()
+    if(globals.band):
+        response = jsonify({
+            'get-hr-result': 'succeeded',
+            'hearrate': globals.band.get_heart_rate_one_time()
+        })
+    else:
+        response = jsonify({'get-hr-result': 'failed'})
     return response
 
 
 
 @app.route('/getsteps')
 def get_step_count():
-    #require mac&auth in session
-    #if not -> redirect: connect
+    if(globals.band):    
+        stepinfo = globals.band.get_steps()
+        response = jsonify({
+            'get-step-result': 'succeeded',
+            'stepinfo': stepinfo
+        })
+    else:
+        response = jsonify({
+            'get-step-result': 'failed'
+        })
     
-    #if mac in session
-    mac_add = session['mac_add']
-    auth_key = session['auth_key']
-    band = connect(mac_add, auth_key)
-    
-    binfo = band.get_steps()
-    band.disconnect()
-    return jsonify(steps=binfo['steps'],
-                    fat_burned=binfo['fat_burned'],
-                    calories=binfo['calories'],
-                    travelled_distance=binfo['meters'])
+    return response
 
 
 def activity_log_callback(timestamp,c,i,s,h):
+    globals.now_ts = timestamp
+    print('log')
     single_row = {
         'category' : c,
         'intensity' : i,
         'steps' : s,
         'heartrate' : h
         }
-    session['logged_data'][timestamp.strftime('%d.%m.%Y - %H:%M')] = single_row
-    print('fetching...')
-    if(timestamp >= session['logged_tstamp'] - timedelta(minutes=1)):
-        session['finished_log'] = True
+    globals.logged_data[timestamp.strftime('%d.%m.%Y - %H:%M')] = single_row
+    # print('fetching...')
+    if(timestamp >= globals.end_log_ts - timedelta(minutes=1)):
+        globals.finish_flag = True
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
 
 @app.route('/logdatatoday')
 def get_activity_logs_today():
-    #require mac&auth in session
-    #if not -> redirect: connect
-    
-    #if mac in session
-    mac_add = session['mac_add']
-    auth_key = session['auth_key']
-    band = connect(mac_add, auth_key)
+    if(globals.band):
+        globals.finish_flag = False
+        globals.logged_data = {}
+        #gets activity log for this day
+        temp = datetime.now()
+        globals.end_log_ts = temp
 
-    session['finished_log'] = False
-    session['logged_data'] = {}
-    #gets activity log for this day
-    temp = datetime.now()
-    session['logged_tstamp'] = temp
+        globals.band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day), temp, activity_log_callback)
+        while not globals.finish_flag:
+            print(globals.now_ts)
+            globals.band.waitForNotifications(0.2)
+        
+        response = jsonify({
+            'log-data-result': 'succeeded',
+            'log-data': globals.logged_data
+        })
 
-    band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day), temp, activity_log_callback)
-    while not session['finished_log']:
-        print('wait')
-        band.waitForNotifications(0.2)
+    else:
+        response = jsonify({
+            'log-data-result': 'failed'
+        })
 
-    band.disconnect()
-    return session['logged_data']
+    globals.logged_data = {}
+    return response
 
 
 @app.route('/logdata', methods=['POST'])
 def get_activity_logs():
-    #require mac&auth in session
-    #if not -> redirect: connect
-    
-    #if mac in session
-    mac_add = session['mac_add']
-    auth_key = session['auth_key']
-    band = connect(mac_add, auth_key)
 
-    session['finished_log'] = False
-    session['logged_data'] = {}
-    info = request.json
-    start = datetime.strptime(info['start'], "%d.%m.%Y - %H:%M")
-    end = datetime.strptime(info['end'], "%d.%m.%Y - %H:%M")
-    
-    session['logged_tstamp'] = end
-    band.get_activity_betwn_intervals(start, end, activity_log_callback)
-    while not session['finished_log']:
-        print('wait')
-        band.waitForNotifications(0.2)
+    if(globals.band):
+        globals.finish_flag = False
+        globals.logged_data = {}
+        info = request.json
+        start = datetime.strptime(info['start'], "%d.%m.%Y - %H:%M")
+        end = datetime.strptime(info['end'], "%d.%m.%Y - %H:%M")
+        
+        globals.end_log_ts = end
+        globals.band.get_activity_betwn_intervals(start, end, activity_log_callback)
+        while not globals.finish_flag:
+            globals.band.waitForNotifications(0.2)
 
-    band.disconnect()
-    return session['logged_data']
+        response = jsonify({
+            'log-data-result': 'succeeded',
+            'log-data': globals.logged_data
+        })
+    
+    else:
+        response = jsonify({
+            'log-data-result': 'failed'
+        })
+
+    globals.logged_data = {}
+    return response

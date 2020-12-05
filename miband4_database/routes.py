@@ -101,9 +101,19 @@ def add_logs():
 def get_log_of(band_id):
     try:
         logs=ActivityRecord.query.filter_by(band_id=band_id)
-        return jsonify([log.serialize() for log in logs])
+        serializedLogs = []
+        for log in logs:
+            serializedLogs.append(log.serialize()) 
+        response = jsonify({
+            'logs': serializedLogs,
+            'get-logs-result': 'succeeded'
+        })
     except Exception as e:
-        return(str(e))
+        response = jsonify({'get-logs-result': 'failed'})
+        print(e)
+    
+    return response
+    
 
 
 @app.route("/getlogsbytime/<band_id>", methods=['POST'])
@@ -114,9 +124,17 @@ def get_log_by_timestamp_of(band_id):
     try:
         logs=ActivityRecord.query.filter_by(band_id=band_id)\
                                 .filter(ActivityRecord.timestamp.between(start, end))
-        return jsonify([log.serialize() for log in logs])
+        serializedLogs = []
+        for log in logs:
+            serializedLogs.append(log.serialize()) 
+        response = jsonify({
+            'logs': serializedLogs,
+            'get-logs-result': 'succeeded'
+        })
     except Exception as e:
-        return(str(e))
+        response = jsonify({'get-logs-result': 'failed'})
+    
+    return response
 
 @app.route('/deleteband/<serial>')
 def delete_band(serial):
