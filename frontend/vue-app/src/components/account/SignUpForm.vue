@@ -110,14 +110,22 @@ export default {
       },
       show: true,
       validEmail: null,
-      submitStatus: null
+      submitStatus: null,
+      user_db_host: this.$api_hosts['user_db_api'],
+      user_db_port: this.$api_ports['user_db_api']
+      // get user_db_host() {
+      //   return this.$api_hosts['user_db_api']
+      // },
+      // get user_db_port() {
+      //   return this.$api_ports['user_db_api']
+      // },
     }
   },
 
   methods: {
     async validateEmail(email) {
       try {
-        const response = await fetch('http://127.0.0.1:5000/getuser/'+email)
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/getuser/${email}`)
         const result = await response.json()
         if (result.user!=null) {
           return false
@@ -129,7 +137,7 @@ export default {
     },
     async addUser(user) {
       try {
-        const response = await fetch('http://127.0.0.1:5000/adduser', {
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/adduser`, {
           method: 'POST',
           body: JSON.stringify(user),
           headers: { 'Content-type': 'application/json; charset=UTF-8' },
@@ -148,6 +156,7 @@ export default {
           //check if email is valid or not
           if(ableToAdd) { //if email hasnt been used
             this.addUser(this.form).then(()=>{
+              this.validEmail = true
               this.submitStatus = 'OK'
             })
             this.submitStatus = 'PENDING'

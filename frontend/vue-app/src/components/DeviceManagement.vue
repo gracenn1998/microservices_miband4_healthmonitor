@@ -16,9 +16,6 @@
 import PairDeviceForm from '@/components/device/PairDeviceForm'
 import DeviceList from '@/components/device/DeviceList'
 
-const miband_db_host='192.168.11.122'
-const miband_db_port='5002'
-
 export default {
     components: { 
         PairDeviceForm,
@@ -28,6 +25,10 @@ export default {
         return {
             addBandMode: false,
             listkey: false,
+            miband_db_host: this.$api_hosts['miband_db_api'],
+            miband_db_port: this.$api_ports['miband_db_api'],
+            miband_host: this.$api_hosts['miband_api'],
+            miband_port: this.$api_ports['miband_api']
         }
     },
     methods: {
@@ -45,7 +46,7 @@ export default {
         async removeBandDbApiCall(band) {
             const serial = band.serial
             try {
-                const response = await fetch(`http://${miband_db_host}:${miband_db_port}/deleteband/${serial}`)
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/deleteband/${serial}`)
                 const result = await response.json()
 
                 // do something with `data`
@@ -56,7 +57,20 @@ export default {
                 // do something with `error`
             }
         },
+
+        async disconnectApiCall() {
+            try {
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/disconnect`)
+                const result = await response.json()
+                console.log(result)
+                return result
+            } catch (error) {
+                // do something with `error`
+            }
+        },
+
         removeBand(band) {
+            this.disconnectApiCall()
             this.removeBandDbApiCall(band).then(()=>{
                 this.$session.remove('miband')
                 this.updateListDisplay()

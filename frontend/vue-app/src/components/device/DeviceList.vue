@@ -39,8 +39,6 @@
 </template>
 
 <script>
-const miband_db_host='192.168.11.122'
-const miband_db_port='5002'
 
   export default {
     created() {
@@ -53,7 +51,12 @@ const miband_db_port='5002'
     },
     data() {
       return {
-        miband: this.$session.get('miband')
+        miband: this.$session.get('miband'),
+
+        miband_db_host: this.$api_hosts['miband_db_api'],
+        miband_db_port: this.$api_ports['miband_db_api'],
+        miband_host: this.$api_hosts['miband_api'],
+        miband_port: this.$api_ports['miband_api']
       }
     },
     methods: {
@@ -65,7 +68,7 @@ const miband_db_port='5002'
       async getBandInfo() {
         const userid = this.$session.get('user').id
         try {
-            const response = await fetch(`http://${miband_db_host}:${miband_db_port}/getbandbyuser/${userid}`)
+            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/getbandbyuser/${userid}`)
             const result = await response.json()
             return result
         } catch (error) {

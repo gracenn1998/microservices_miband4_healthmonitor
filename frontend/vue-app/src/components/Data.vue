@@ -9,14 +9,14 @@
             <b-alert variant="info" show>Connecting...</b-alert>
           </div>
           <b-tabs card>
-            <b-tab title="General Information" active> 
+            <b-tab title="General Information" active lazy> 
               <GeneralData :key='gdkey'/>
             </b-tab>
-            <b-tab title="Step Counts">
-              <StepCounts />
+            <b-tab title="Step Counts" lazy>
+              <DataType :type="'steps'" />
             </b-tab>
-            <b-tab title="Heart Rate">
-              <HeartRate />
+            <b-tab title="Heart Rate" lazy>
+              <DataType :type="'hr'" />
             </b-tab>
         </b-tabs>
       </b-card>
@@ -25,27 +25,22 @@
 
 <script>
 import GeneralData from '@/components/data/GeneralData'
-import HeartRate from '@/components/data/HeartRate'
-import StepCounts from '@/components/data/StepCounts'
-
-const miband_db_host='192.168.11.122'
-const miband_db_port='5002'
-const miband_host='192.168.11.122'
-const miband_port='5001'
-
-
+import DataType from '@/components/data/DataType'
 export default {
   components: {
-    GeneralData, 
-    HeartRate,
-    StepCounts
+    GeneralData,
+    DataType
   },
   data() {
     return {
       miband: this.$session.get('miband'),
       hr_key: false,
       connectStatus: '',
-      gdkey: false
+      gdkey: false,
+      miband_db_host: this.$api_hosts['miband_db_api'],
+      miband_db_port: this.$api_ports['miband_db_api'],
+      miband_host: this.$api_hosts['miband_api'],
+      miband_port: this.$api_ports['miband_api']
     }
   },
   created() {
@@ -53,7 +48,6 @@ export default {
     if(miband==undefined) {
       this.getBandInfo().then((bandinfo)=>{
         this.$session.set('miband', bandinfo)
-        this.$forceUpdate
       })
     }
   },
@@ -62,7 +56,7 @@ export default {
     async getBandInfo() {
       const userid = this.$session.get('user').id
       try {
-          const response = await fetch(`http://${miband_db_host}:${miband_db_port}/getbandbyuser/${userid}`)
+          const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/getbandbyuser/${userid}`)
           const result = await response.json()
           return result
       } catch (error) {
@@ -72,7 +66,7 @@ export default {
 
     async disconnectApiCall() {
       try {
-          const response = await fetch(`http://${miband_host}:${miband_port}/disconnect`)
+          const response = await fetch(`http://${this.miband_host}:${this.miband_port}/disconnect`)
           const result = await response.json()
           console.log(result)
           return result
@@ -83,7 +77,7 @@ export default {
 
     async connectApiCall(mac_add, auth_key) {
       try {
-          const response = await fetch(`http://${miband_host}:${miband_port}/connect`, {
+          const response = await fetch(`http://${this.miband_host}:${this.miband_port}/connect`, {
           method: 'POST',
           body: JSON.stringify({
               'mac_add': mac_add,
@@ -120,7 +114,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-
-</style>

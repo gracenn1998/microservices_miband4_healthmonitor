@@ -59,10 +59,6 @@
 </template>
 
 <script>
-const miband_db_host='192.168.11.122'
-const miband_host='192.168.11.122'
-const miband_db_port='5002'
-const miband_port='5001'
 
 export default {
   computed: {
@@ -100,12 +96,16 @@ export default {
           auth_key: '2f20ba44fdcf54ca0c2c37cad1f85487'
       },
       pairingStatus: null,
+      miband_db_host: this.$api_hosts['miband_db_api'],
+      miband_db_port: this.$api_ports['miband_db_api'],
+      miband_host: this.$api_hosts['miband_api'],
+      miband_port: this.$api_ports['miband_api']
     }
   },
   methods: {
     async connectBandApiCall(mac_add, auth_key) {
         try {
-            const response = await fetch(`http://${miband_host}:${miband_port}/connect`, {
+            const response = await fetch(`http://${this.miband_host}:${this.miband_port}/connect`, {
             method: 'POST',
             body: JSON.stringify({
                 'mac_add': mac_add,
@@ -130,7 +130,7 @@ export default {
         }
         bodydata['uid'] = userid
         try {
-            const response = await fetch(`http://${miband_db_host}:${miband_db_port}/addband`, {
+            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/addband`, {
             method: 'POST',
             body: JSON.stringify(
                 bodydata

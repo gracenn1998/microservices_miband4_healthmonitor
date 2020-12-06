@@ -65,6 +65,8 @@ export default {
             user: this.$session.get('user'),
             avatarStr: '',
             nameUpdateMode: false,
+            user_db_host: this.$api_hosts['user_db_api'],
+            user_db_port: this.$api_ports['user_db_api']
         }
     },
     methods: {
@@ -94,7 +96,7 @@ export default {
 
         async updateNameApiCall(email, newName) {
             try {
-                const response = await fetch('http://127.0.0.1:5000/updateuser/'+email, {
+                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/updateuser/${email}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     'fullname': newName,

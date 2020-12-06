@@ -53,8 +53,6 @@
 </template>
 
 <script>
-var host='192.168.11.122'
-var port='5000'
 export default {
   data() {
     return {
@@ -65,13 +63,21 @@ export default {
       },
       show: true,
       validSignin: null,
-      submitStatus: null
+      submitStatus: null,
+      user_db_host: this.$api_hosts['user_db_api'],
+      user_db_port: this.$api_ports['user_db_api']
+      // get user_db_host() {
+      //   return this.$api_hosts['user_db_api']
+      // },
+      // get user_db_port() {
+      //   return this.$api_ports['user_db_api']
+      // },
     }
   },
   methods: {
     async signin(email, password) {
       try {
-        const response = await fetch(`http://${host}:${port}/login`, {
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/login`, {
           method: 'POST',
           body: JSON.stringify({
             'email': email,

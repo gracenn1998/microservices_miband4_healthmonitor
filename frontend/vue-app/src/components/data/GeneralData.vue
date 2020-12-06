@@ -29,40 +29,40 @@
 </template>
 
 <script>
-const miband_host='192.168.11.122'
-const miband_port='5001'
 export default {
     // props: ['generaldata'],
     data() {
         return {
-            generaldata: null
+            generaldata: null,
+            miband_host: this.$api_hosts['miband_api'],
+            miband_port: this.$api_ports['miband_api']
         }
     },
-    created() {
+    mounted() {
         if(this.$session.get('miband')!=undefined) {
             this.getGeneralData()
         }
     },
     methods: {
         async getGeneralDataApiCall() {
-        try {
-            const response = await fetch(`http://${miband_host}:${miband_port}/getsteps`)
-            const result = await response.json()
-            if(result['get-step-result']==='succeeded')
-                return result['stepinfo']
-            return false
-        } catch (error) {
-            // do something with `error`
-        }
-      },
-
-      getGeneralData() {
-        this.getGeneralDataApiCall().then((result)=>{
-            if(result) {
-                this.generaldata = result
+            try {
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/getsteps`)
+                const result = await response.json()
+                if(result['get-step-result']==='succeeded')
+                    return result['stepinfo']
+                return false
+            } catch (error) {
+                // do something with `error`
             }
-          })
-      },
+        },
+
+        getGeneralData() {
+            this.getGeneralDataApiCall().then((result)=>{
+                if(result) {
+                    this.generaldata = result
+                }
+            })
+        },
     }
 }
 </script>
