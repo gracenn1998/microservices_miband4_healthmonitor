@@ -10,8 +10,9 @@ class Miband4(db.Model):
     hardware_revision = db.Column(db.String(10))
     mac_address = db.Column(db.String(17), nullable=False)
     auth_key = db.Column(db.String(32), nullable=False)
+    last_fetch_data_timestamp = db.Column(db.DateTime(timezone=True))
     activities_records = db.relationship('ActivityRecord', backref='band', lazy=True)
-
+    
     def __repr__(self):
         return f"Band('{self.serial}')"
     

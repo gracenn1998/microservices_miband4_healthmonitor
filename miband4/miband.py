@@ -19,6 +19,8 @@ try:
 except NameError:
     xrange = range
 
+from miband4_api import globals
+
 
 class Delegate(DefaultDelegate):
     def __init__(self, device):
@@ -76,6 +78,7 @@ class Delegate(DefaultDelegate):
 
             elif data[:3] == b'\x10\x02\x04':
                 print("No more activity fetch possible")
+                globals.finish_flag = True
                 return
             else:
                 print("Unexpected data on handle " + str(hnd) + ": " + str(data))

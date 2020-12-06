@@ -82,11 +82,17 @@ def add_logs():
                 category = category
             )
             db.session.add(log)
+            response = jsonify({
+                'add-logs-result' : 'succeeded',
+            })
         except Exception as e:
             print(e)
-            # return(str(e)
+            response = jsonify({
+                'add-logs-result' : 'failed',
+            })
+    
     db.session.commit()
-    return "Logs added"
+    return response
 
 # @app.route("/getalllogs")
 # def get_all_logs():
@@ -135,6 +141,41 @@ def get_log_by_timestamp_of(band_id):
         response = jsonify({'get-logs-result': 'failed'})
     
     return response
+
+@app.route("/lastfetchtime/<band_id>")
+def get_last_time_of(band_id):
+    try:
+        band=Miband4.query.filter_by(id=band_id).first()
+        last_ts = band.last_fetch_data_timestamp
+        if(last_ts==None):
+            last_ts=''
+        response = jsonify({
+            'get-timestamp-result': 'succeeded',
+            'last-fetch-timestamp': last_ts
+        })
+    except Exception as e:
+        response = jsonify({'get-timestamp-result': 'failed'})
+        print(e)
+    
+    return response
+
+@app.route("/lastfetchtime/<band_id>", methods=['POST'])
+def set_last_time_of(band_id):
+    data = request.json
+    last_ts = datetime.datetime.strptime(data['last'], "%d.%m.%Y - %H:%M")
+    try:
+        band=Miband4.query.filter_by(id=band_id).first()
+        band.last_fetch_data_timestamp = last_ts
+        db.session.commit()
+        response = jsonify({
+            'set-timestamp-result': 'succeeded'
+        })
+    except Exception as e:
+        response = jsonify({'get-timestamp-result': 'failed'})
+        print(e)
+    
+    return response
+
 
 @app.route('/deleteband/<serial>')
 def delete_band(serial):

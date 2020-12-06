@@ -181,7 +181,7 @@ def get_activity_logs_today():
         
         response = jsonify({
             'log-data-result': 'succeeded',
-            'log-data': globals.logged_data
+            'logs': globals.logged_data
         })
 
     else:
@@ -210,7 +210,7 @@ def get_activity_logs():
 
         response = jsonify({
             'log-data-result': 'succeeded',
-            'log-data': globals.logged_data
+            'logs': globals.logged_data
         })
     
     else:
