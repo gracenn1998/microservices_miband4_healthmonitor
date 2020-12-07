@@ -43,10 +43,12 @@ export default {
             this.listkey = !this.listkey
         },
 
-        async removeBandDbApiCall(band) {
-            const serial = band.serial
+        async removeBandDbApiCall() {
+            const bandid = this.$session.get('miband').id
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/deleteband/${serial}`)
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}`, {
+                    method: "DELETE"
+                })
                 const result = await response.json()
 
                 // do something with `data`
@@ -60,7 +62,7 @@ export default {
 
         async disconnectApiCall() {
             try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/disconnect`)
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/disconnect`)
                 const result = await response.json()
                 console.log(result)
                 return result
@@ -69,9 +71,10 @@ export default {
             }
         },
 
-        removeBand(band) {
+        removeBand() {
+            // need delete all logs
             this.disconnectApiCall()
-            this.removeBandDbApiCall(band).then(()=>{
+            this.removeBandDbApiCall().then(()=>{
                 this.$session.remove('miband')
                 this.updateListDisplay()
             })

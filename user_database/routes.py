@@ -5,7 +5,7 @@ import datetime
 import os, hashlib
 
 
-@app.route('/adduser', methods=['POST'])
+@app.route('/users', methods=['POST'])
 def add_user():
     user = request.json
     email = user['email']
@@ -30,8 +30,9 @@ def add_user():
     return jsonify(new_user.serialize())
 
 
-@app.route('/getuser/<email>')
-def getuser(email):
+@app.route('/users/find-by-email')
+def getuserbyemail():
+    email = request.args.get('email')
     try:
         user = User.query.filter_by(email=email).first()
         if(user):
@@ -41,12 +42,12 @@ def getuser(email):
         return str(e)
 
 
-@app.route('/updateuser/<email>', methods=['PUT'])
-def updateuser(email):
+@app.route('/users/<id>', methods=['PUT'])
+def updateuser(id):
     try:
         userdata = request.json
         fullname = userdata['fullname']
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(id=id).first()
         user.fullname = fullname
         db.session.commit()
         return jsonify(user.serialize())
@@ -54,8 +55,8 @@ def updateuser(email):
         return str(e)
 
 
-@app.route('/changepassword/<email>', methods=['PUT'])
-def change_password(email):
+@app.route('/users/<id>/change-password', methods=['POST'])
+def change_password(id):
     try:
         pw = request.json['password']
         salt = os.urandom(32)
@@ -76,7 +77,7 @@ def change_password(email):
         return str(e)
 
 
-@app.route('/login', methods=['POST'])
+@app.route('/users/login', methods=['POST'])
 def login():
     entered_pw = request.json['password']
     email = request.json['email']
@@ -112,10 +113,10 @@ def login():
     except Exception as e:
         return str(e)
 
-@app.route('/checkpassword/<email>', methods=['POST'])
-def check_password(email):
+@app.route('/users/<id>/checkpassword', methods=['POST'])
+def check_password(id):
     try:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(id=id).first()
         salt = user.password_salt
         pw_to_check = request.json['password']
 
@@ -138,10 +139,10 @@ def check_password(email):
         return str(e)
 
 
-@app.route('/deleteuser/<email>')
-def delete_user(email):
+@app.route('/users/<id>', methods=['DELETE'])
+def delete_user(id):
     try:
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(id=id).first()
         db.session.delete(user)
         db.session.commit()
         return 'Deleted'

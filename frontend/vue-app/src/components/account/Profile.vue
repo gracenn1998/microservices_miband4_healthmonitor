@@ -94,9 +94,10 @@ export default {
             }
         },
 
-        async updateNameApiCall(email, newName) {
+        async updateNameApiCall(newName) {
+            const uid = this.$session.get('user').id
             try {
-                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/updateuser/${email}`, {
+                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${uid}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     'fullname': newName,
@@ -111,7 +112,7 @@ export default {
         },
         updateName() {
             // this.updateNameApiCall(this.user.email, this.user.fullname)
-            this.updateNameApiCall(this.user.email, this.user.fullname).then((user)=>{
+            this.updateNameApiCall(this.user.fullname).then((user)=>{
                 this.$session.set('user', user)
                 this.generateAvtStr()
                 this.exitNameUpdateMode()

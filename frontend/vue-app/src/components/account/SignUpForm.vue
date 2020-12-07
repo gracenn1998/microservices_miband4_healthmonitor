@@ -124,8 +124,9 @@ export default {
 
   methods: {
     async validateEmail(email) {
+      const params = 'email='+email
       try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/getuser/${email}`)
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/find-by-email?${params}`)
         const result = await response.json()
         if (result.user!=null) {
           return false
@@ -137,7 +138,7 @@ export default {
     },
     async addUser(user) {
       try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/adduser`, {
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users`, {
           method: 'POST',
           body: JSON.stringify(user),
           headers: { 'Content-type': 'application/json; charset=UTF-8' },

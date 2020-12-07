@@ -8,7 +8,7 @@ from miband4_database.models import Miband4, ActivityRecord
 def hello():
     return "Hello World!"
 
-@app.route("/addband", methods=['POST'])
+@app.route("/bands", methods=['POST'])
 def add_band():
     bandinfo = request.json
     serial = bandinfo['serial']
@@ -43,7 +43,7 @@ def add_band():
 #     except Exception as e:
 # 	    return(str(e))
 
-@app.route("/getband/<id>")
+@app.route("/bands/<id>")
 def get_band_by_id(id):
     try:
         band=Miband4.query.filter_by(id=id).first()
@@ -51,8 +51,9 @@ def get_band_by_id(id):
     except Exception as e:
 	    return(str(e))
 
-@app.route("/getbandbyuser/<uid>")
-def get_band_by_user(uid):
+@app.route("/bands/find-by-userid")
+def get_band_by_user():
+    uid = request.args.get('uid')
     try:
         band=Miband4.query.filter_by(uid=uid).first()
         return jsonify(band.serialize())
@@ -60,10 +61,8 @@ def get_band_by_user(uid):
 	    return(str(e))
 
 
-@app.route("/addlogs", methods=['POST'])
-def add_logs():
-    # logs = request.args.get[logs]
-    band_id = request.args.get('band_id')
+@app.route("/bands/<id>/logs", methods=['POST'])
+def add_logs(id):
     logs = request.json
     for ts in logs:
         # timestamp = time
@@ -74,7 +73,7 @@ def add_logs():
         category = logs[ts]['category']
         try:
             log=ActivityRecord(
-                band_id = band_id,
+                band_id = id,
                 timestamp = timestamp,
                 intensity = intensity,
                 steps = steps,
@@ -103,10 +102,10 @@ def add_logs():
 # 	    return(str(e))
 
 
-@app.route("/getalllogs/<band_id>")
-def get_log_of(band_id):
+@app.route("/bands/<id>/logs")
+def get_log_of(id):
     try:
-        logs=ActivityRecord.query.filter_by(band_id=band_id)
+        logs=ActivityRecord.query.filter_by(band_id=id)
         serializedLogs = []
         for log in logs:
             serializedLogs.append(log.serialize()) 
@@ -122,13 +121,14 @@ def get_log_of(band_id):
     
 
 
-@app.route("/getlogsbytime/<band_id>", methods=['POST'])
-def get_log_by_timestamp_of(band_id):
-    info = request.json
-    start = datetime.datetime.strptime(info['start'], "%d.%m.%Y - %H:%M")
-    end = datetime.datetime.strptime(info['end'], "%d.%m.%Y - %H:%M")
+@app.route("/bands/<id>/logs/get-by-time")
+def get_log_by_timestamp_of(id):
+    start = request.args.get('start')
+    end = request.args.get('end')
+    start = datetime.datetime.strptime(start, "%d.%m.%Y - %H:%M")
+    end = datetime.datetime.strptime(end, "%d.%m.%Y - %H:%M")
     try:
-        logs=ActivityRecord.query.filter_by(band_id=band_id)\
+        logs=ActivityRecord.query.filter_by(band_id=id)\
                                 .filter(ActivityRecord.timestamp.between(start, end))
         serializedLogs = []
         for log in logs:
@@ -142,10 +142,10 @@ def get_log_by_timestamp_of(band_id):
     
     return response
 
-@app.route("/lastfetchtime/<band_id>")
-def get_last_time_of(band_id):
+@app.route("/bands/<id>/last-fetch-time")
+def get_last_fetch_time_of(id):
     try:
-        band=Miband4.query.filter_by(id=band_id).first()
+        band=Miband4.query.filter_by(id=id).first()
         last_ts = band.last_fetch_data_timestamp
         if(last_ts==None):
             last_ts=''
@@ -159,12 +159,12 @@ def get_last_time_of(band_id):
     
     return response
 
-@app.route("/lastfetchtime/<band_id>", methods=['POST'])
-def set_last_time_of(band_id):
+@app.route("/bands/<id>/last-fetch-time", methods=['POST'])
+def set_last_time_of(id):
     data = request.json
     last_ts = datetime.datetime.strptime(data['last'], "%d.%m.%Y - %H:%M")
     try:
-        band=Miband4.query.filter_by(id=band_id).first()
+        band=Miband4.query.filter_by(id=id).first()
         band.last_fetch_data_timestamp = last_ts
         db.session.commit()
         response = jsonify({
@@ -177,11 +177,22 @@ def set_last_time_of(band_id):
     return response
 
 
-@app.route('/deleteband/<serial>')
-def delete_band(serial):
+@app.route('/bands/<id>', methods=['DELETE'])
+def delete_band(id):
     try:
-        band = Miband4.query.filter_by(serial=serial).first()
+        band = Miband4.query.filter_by(id=id).delete()
         db.session.delete(band)
+        db.session.commit()
+        return jsonify({
+            'delete-result': 'succeeded'
+        })
+    except Exception as e:
+        return str(e)
+
+@app.route('/bands/<id>/logs', methods=['DELETE'])
+def delete_logs_of(bandid):
+    try:
+        logs=ActivityRecord.query.filter_by(band_id=bandid).delete()
         db.session.commit()
         return jsonify({
             'delete-result': 'succeeded'

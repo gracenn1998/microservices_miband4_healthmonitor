@@ -105,7 +105,7 @@ export default {
   methods: {
     async connectBandApiCall(mac_add, auth_key) {
         try {
-            const response = await fetch(`http://${this.miband_host}:${this.miband_port}/connect`, {
+            const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/connect`, {
             method: 'POST',
             body: JSON.stringify({
                 'mac_add': mac_add,
@@ -130,7 +130,7 @@ export default {
         }
         bodydata['uid'] = userid
         try {
-            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/addband`, {
+            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands`, {
             method: 'POST',
             body: JSON.stringify(
                 bodydata

@@ -46,7 +46,7 @@ export default {
     methods: {
         async getGeneralDataApiCall() {
             try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/getsteps`)
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/general`)
                 const result = await response.json()
                 if(result['get-step-result']==='succeeded')
                     return result['stepinfo']

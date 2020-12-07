@@ -43,7 +43,7 @@ def connect(mac_add, auth_key):
     # if succeeded
     return band
 
-@app.route("/connect", methods=['POST'])
+@app.route("/band/connect", methods=['POST'])
 def get_mac_and_key():
     # global band
     #if already connected
@@ -79,7 +79,7 @@ def get_mac_and_key():
     return response 
  
 
-@app.route('/disconnect')
+@app.route('/band/disconnect')
 def disconnect():
     if(globals.band):
         globals.band.disconnect()
@@ -96,7 +96,7 @@ def disconnect():
 
 
 
-@app.route('/getbandinfo')
+@app.route('/band/info')
 def get_band_info():
 
     if(globals.band):
@@ -121,20 +121,7 @@ def get_band_info():
     return response
     
 
-@app.route("/heartrate/once")
-def get_heartrate_once():
-    if(globals.band):
-        response = jsonify({
-            'get-hr-result': 'succeeded',
-            'hearrate': globals.band.get_heart_rate_one_time()
-        })
-    else:
-        response = jsonify({'get-hr-result': 'failed'})
-    return response
-
-
-
-@app.route('/getsteps')
+@app.route('/band/general')
 def get_step_count():
     if(globals.band):    
         stepinfo = globals.band.get_steps()
@@ -165,48 +152,23 @@ def activity_log_callback(timestamp,c,i,s,h):
         globals.finish_flag = True
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
 
-@app.route('/logdatatoday')
-def get_activity_logs_today():
-    if(globals.band):
-        globals.finish_flag = False
-        globals.logged_data = {}
-        #gets activity log for this day
-        temp = datetime.now()
-        globals.end_log_ts = temp
 
-        globals.band.get_activity_betwn_intervals(datetime(temp.year,temp.month,temp.day), temp, activity_log_callback)
-        while not globals.finish_flag:
-            print(globals.now_ts)
-            globals.band.waitForNotifications(0.2)
-        
-        response = jsonify({
-            'log-data-result': 'succeeded',
-            'logs': globals.logged_data
-        })
-
-    else:
-        response = jsonify({
-            'log-data-result': 'failed'
-        })
-
-    globals.logged_data = {}
-    return response
-
-
-@app.route('/logdata', methods=['POST'])
+@app.route('/band/activitydata')
 def get_activity_logs():
 
     if(globals.band):
         globals.finish_flag = False
         globals.logged_data = {}
-        info = request.json
-        start = datetime.strptime(info['start'], "%d.%m.%Y - %H:%M")
-        end = datetime.strptime(info['end'], "%d.%m.%Y - %H:%M")
+        # info = request.json
+        start = request.args.get('start')
+        end = request.args.get('end')
+        start = datetime.strptime(start, "%d.%m.%Y - %H:%M")
+        end = datetime.strptime(end, "%d.%m.%Y - %H:%M")
         
         globals.end_log_ts = end
         globals.band.get_activity_betwn_intervals(start, end, activity_log_callback)
         while not globals.finish_flag:
-            globals.band.waitForNotifications(0.2)
+            globals.band.waitForNotifications(0.5)
 
         response = jsonify({
             'log-data-result': 'succeeded',

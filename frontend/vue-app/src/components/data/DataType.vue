@@ -178,7 +178,7 @@ export default {
         async addLogsDb(logs) {
             const bandid = this.$session.get('miband').id
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/addlogs?band_id=${bandid}`, {
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/logs`, {
                 method: 'POST',
                 body: JSON.stringify(logs),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
@@ -195,15 +195,9 @@ export default {
 
         async getDataByTimeApiCallDb(start, end) {
             const bandid = this.$session.get('miband').id
+            const params = 'start='+start + '&end='+end
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/getlogsbytime/${bandid}`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    'start': start,
-                    'end': end
-                    }),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/logs/get-by-time?${params}`)
                 
                 const result = await response.json()
                 if(result['get-logs-result']==='succeeded')
@@ -234,7 +228,7 @@ export default {
         async getLastFetchingDataTimestampDb() {
             const bandid = this.$session.get('miband').id
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/lastfetchtime/${bandid}`)
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/last-fetch-time`)
                 const result = await response.json()
                 if(result['get-timestamp-result']=='succeeded'){
                     return result['last-fetch-timestamp']
@@ -291,15 +285,9 @@ export default {
             var start, end
             start = this.generateApiTimeStr(timestamp)
             end = this.generateApiTimeStr(new Date())
+            const params = 'start='+start + '&end='+end
             try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/logdata`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    'start': start,
-                    'end': end
-                    }),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/activitydata?${params}`)
                 const result = await response.json()
                 if(result['log-data-result']=='succeeded'){
                     return result['logs']
@@ -315,7 +303,7 @@ export default {
         async setLastFetchingDataTimestampDb(last){
             const bandid = this.$session.get('miband').id
             try{
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/lastfetchtime/${bandid}`, {
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/last-fetch-time`, {
                 method: 'POST',
                 body: JSON.stringify({
                     'last': last

@@ -44,8 +44,10 @@
     created() {
       if(this.$session.get('miband')==undefined) {
         this.getBandInfo().then((bandinfo)=>{
-          this.$session.set('miband', bandinfo)
-          this.$emit('update-list-display')
+          if(bandinfo){
+            this.$session.set('miband', bandinfo)
+            this.$emit('update-list-display')
+          }
         })
       }
     },
@@ -61,14 +63,15 @@
     },
     methods: {
       emitAndCloseModal() {
-        this.$emit('unpair-band', this.miband)
+        this.$emit('unpair-band')
         this.$bvModal.hide('confirm-remove-modal')
       },
 
       async getBandInfo() {
         const userid = this.$session.get('user').id
+        const params = '?uid='+userid
         try {
-            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/getbandbyuser/${userid}`)
+            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/find-by-userid${params}`)
             const result = await response.json()
             return result
         } catch (error) {

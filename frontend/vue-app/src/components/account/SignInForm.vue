@@ -77,7 +77,7 @@ export default {
   methods: {
     async signin(email, password) {
       try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/login`, {
+        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/login`, {
           method: 'POST',
           body: JSON.stringify({
             'email': email,
