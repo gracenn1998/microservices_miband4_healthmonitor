@@ -42,7 +42,7 @@ def getuserbyemail():
         return str(e)
 
 
-@app.route('/users/<id>', methods=['PUT'])
+@app.route('/users/<id>/fullname', methods=['PUT'])
 def updateuser(id):
     try:
         userdata = request.json

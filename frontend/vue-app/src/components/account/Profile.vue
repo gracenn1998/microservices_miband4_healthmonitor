@@ -97,7 +97,7 @@ export default {
         async updateNameApiCall(newName) {
             const uid = this.$session.get('user').id
             try {
-                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${uid}`, {
+                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${uid}/fullname`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     'fullname': newName,
