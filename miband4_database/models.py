@@ -4,7 +4,7 @@ class Miband4(db.Model):
     __tablename__ = 'miband4_devices'
 
     id = db.Column(db.Integer, primary_key=True)
-    uid = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
     serial = db.Column(db.String(12), unique=True)
     software_revision = db.Column(db.String(10))
     hardware_revision = db.Column(db.String(10))
@@ -19,7 +19,7 @@ class Miband4(db.Model):
     def serialize(self):
         return {
             'id': self.id,
-            'uid': self.uid,
+            'user_id': self.user_id,
             'serial': self.serial, 
             'software_revision': self.software_revision,
             'hardware_revision': self.hardware_revision,
@@ -30,8 +30,9 @@ class Miband4(db.Model):
 
 class ActivityRecord(db.Model):
     # id = db.Column(db.Integer, primary_key=True)
-    band_id = db.Column(db.Integer, db.ForeignKey(Miband4.id), nullable=False, primary_key=True)
-    timestamp = db.Column(db.DateTime(timezone=True), nullable=False, primary_key=True)
+    band_id = db.Column(db.Integer, db.ForeignKey(Miband4.id), primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime(timezone=True), primary_key=True)
     category = db.Column(db.Integer)
     intensity = db.Column(db.Integer)
     steps = db.Column(db.Integer)
@@ -43,6 +44,7 @@ class ActivityRecord(db.Model):
     def serialize(self):
         return {
             'band_id': self.band_id,
+            'user_id': self.user_id,
             'timestamp': self.timestamp,
             'category': self.category,
             'intensity': self.intensity,

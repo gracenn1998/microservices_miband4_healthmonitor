@@ -13,6 +13,10 @@
       <div v-if="pairingStatus === 'DTB'">
         <b-alert variant="info" show>Adding to database</b-alert>
       </div>
+      <div v-if="pairingStatus === 'UNAVAILABLE'">
+        <b-alert variant="warning" show>Pair failed. This band is in using condition.<br> 
+          If you want to pair, please hard reset the band.</b-alert>
+      </div>
       
       <b-skeleton-wrapper :loading="pairingStatus === 'PENDING' || pairingStatus === 'DTB'">
         <template #loading>
@@ -30,7 +34,7 @@
           >
             <b-form-input class="w-100 mb-1"
               :state="macaddState"
-              v-model="miband.mac_add"
+              v-model="miband.mac_address"
               required
               placeholder="Example: a1:c2:3d:4e:f5:6a"
             ></b-form-input>
@@ -49,7 +53,7 @@
             ></b-form-input>
           </b-form-group>
           <div>
-              <b-button @click="addBand(miband.mac_add, miband.auth_key)" variant="outline-success" class="mr-1">➕</b-button>
+              <b-button @click="addBand(miband.mac_address, miband.auth_key)" variant="outline-success" class="mr-1">➕</b-button>
               <b-button @click="$emit('exit-add-band-mode')" variant="outline-danger">✖️</b-button>
           </div>
       </b-form>
@@ -65,10 +69,10 @@ export default {
     macaddState() {
       var regex = /^(([A-Fa-f0-9]{2}[:]){5}[A-Fa-f0-9]{2}[,]?)+$/i;
       
-      if(this.miband.mac_add=='') {
+      if(this.miband.mac_address=='') {
         return null
       }
-      return regex.test(this.miband.mac_add)
+      return regex.test(this.miband.mac_address)
     },
     authkeyState() {
       if(this.miband.auth_key=='') {
@@ -77,7 +81,7 @@ export default {
       return this.miband.auth_key.length == 32
     },
     invalidMACadd() {
-      if (this.miband.mac_add.length >= 17) {
+      if (this.miband.mac_address.length >= 17) {
         return  'Please check your format. Example: a1:b2:c3:d4:e5:f6'
       }
       return null
@@ -92,7 +96,7 @@ export default {
   data() {
     return {
       miband: {
-          mac_add: 'E3:07:72:26:D4:6B',
+          mac_address: 'E3:07:72:26:D4:6B',
           auth_key: '2f20ba44fdcf54ca0c2c37cad1f85487'
       },
       pairingStatus: null,
@@ -123,12 +127,13 @@ export default {
         }
     },
 
-    async addBandDtbApiCall(miband, userid) {
+    async addNewBandDtbApiCall(miband) {
+        const user_id = this.$session.get('user').id
         const bodydata = {}
         for (var key in miband) {
           bodydata[key] = miband[key]
         }
-        bodydata['uid'] = userid
+        bodydata['user_id'] = user_id
         try {
             const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands`, {
             method: 'POST',
@@ -147,6 +152,46 @@ export default {
         }
     },
 
+    async addAvailableBandDtbApiCall(miband) {
+        const user_id = this.$session.get('user').id
+        const band_id = miband.id
+        const bodydata = {}
+        for (var key in miband) {
+          bodydata[key] = miband[key]
+        }
+        bodydata['user_id'] = user_id
+        try {
+            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${band_id}/update-new-user`, {
+            method: 'PUT',
+            body: JSON.stringify(
+                bodydata
+                ),
+            headers: { 'Content-type': 'application/json; charset=UTF-8' },
+            })
+            const result = await response.json()
+            if(result['add-band-result']=='succeeded') {
+              return result['band-info']
+            }
+            else return false
+        } catch (error) {
+            console.error(error)
+        }
+    },
+
+    async getBandBySerial(serial) {
+      const params = 'serial='+serial
+      try {
+        const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/find-by-serial?${params}`)
+        const result = await response.json()
+        if(result['get-band-result']=='succeeded'){
+          return result['band-info']
+        }
+        else return false
+      }
+      catch (error){
+        console.log(error)
+      }
+    },
     
 
     addBand(mac_add, auth_key) {
@@ -158,16 +203,37 @@ export default {
             for(var key in band) {
               this.miband[key] = band[key]
             }
-            const userid = this.$session.get('user').id
-            this.addBandDtbApiCall(this.miband, userid).then((band)=>{
-              if(band) {
-                this.$session.set('miband', this.miband)
-                //finished
-                this.pairingStatus = 'OK'
-                this.$emit('update-list-display')
+
+            this.getBandBySerial(band['serial']).then((band)=>{
+              if(!band) { //no band with same serial
+                this.addNewBandDtbApiCall(this.miband).then((result)=>{
+                  if(result) {
+                    this.$session.set('miband', result)
+                    //finished
+                    this.pairingStatus = 'OK'
+                    this.$emit('update-list-display')
+                  }
+                })
+                this.pairingStatus = 'DTB'
+              }
+              else { //this band has been used & added into dtb before
+                if(band.user_id) { //this band is currently paired by an user
+                  this.pairingStatus = 'UNAVAILABLE'
+                }
+                else { //this band is currently free
+                  this.addAvailableBandDtbApiCall(band).then((result)=>{
+                    if(result) {
+                      this.$session.set('miband', result)
+                      //finished
+                      this.pairingStatus = 'OK'
+                      this.$emit('update-list-display')
+                    }
+                  })
+                  this.pairingStatus = 'DTB'
+                }
+                
               }
             })
-            this.pairingStatus = 'DTB'
           }
           else {
             this.pairingStatus = 'ERROR'

@@ -176,9 +176,10 @@ export default {
         },
 
         async addLogsDb(logs) {
-            const bandid = this.$session.get('miband').id
+            const band_id = this.$session.get('miband').id
+            const user_id = this.$session.get('user').id
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/logs`, {
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${band_id}/${user_id}/logs`, {
                 method: 'POST',
                 body: JSON.stringify(logs),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
@@ -194,10 +195,10 @@ export default {
         },
 
         async getDataByTimeApiCallDb(start, end) {
-            const bandid = this.$session.get('miband').id
+            const userid = this.$session.get('user').id
             const params = 'start='+start + '&end='+end
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/logs/get-by-time?${params}`)
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/users/${userid}/logs/get-by-time?${params}`)
                 
                 const result = await response.json()
                 if(result['get-logs-result']==='succeeded')

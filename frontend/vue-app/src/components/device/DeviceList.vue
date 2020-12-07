@@ -25,7 +25,7 @@
 
       <b-list-group horizontal>
         <b-list-group-item class="w-25">MAC address</b-list-group-item>
-        <b-list-group-item class="w-75">{{miband.mac_add}}</b-list-group-item>
+        <b-list-group-item class="w-75">{{miband.mac_address}}</b-list-group-item>
       </b-list-group>
       <b-list-group horizontal>
         <b-list-group-item class="w-25">Authentic key</b-list-group-item>
@@ -69,11 +69,14 @@
 
       async getBandInfo() {
         const userid = this.$session.get('user').id
-        const params = '?uid='+userid
+        const params = '?user_id='+userid
         try {
             const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/find-by-userid${params}`)
             const result = await response.json()
-            return result
+            if(result['get-band-result']=='succeeded'){
+              return result['band-info']
+            }
+            return false
         } catch (error) {
             // do something with `error`
         }

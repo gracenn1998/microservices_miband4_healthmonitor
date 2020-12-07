@@ -1,6 +1,9 @@
 <template>
     <b-card title="My device">
-        <b-button variant="outline-primary" class="w-100" @click="enterAddBandMode">+ Add device</b-button>
+        <b-button v-if="$session.get('miband')==undefined" 
+            variant="outline-primary" class="w-100" 
+            @click="enterAddBandMode"
+        >+ Add Miband</b-button>
         <pair-device-form v-if="addBandMode" 
             @exit-add-band-mode="exitAddBandMode"
             @update-list-display="updateListDisplay"
@@ -43,16 +46,14 @@ export default {
             this.listkey = !this.listkey
         },
 
-        async removeBandDbApiCall() {
+        async unpairBandDbApiCall() {
             const bandid = this.$session.get('miband').id
             try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}`, {
-                    method: "DELETE"
-                })
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/unpair`)
                 const result = await response.json()
 
                 // do something with `data`
-                if(result['delete-result']=="succeeded")
+                if(result['unpair-band-result']=="succeeded")
                     return true
                 else return false
             } catch (error) {
@@ -74,7 +75,7 @@ export default {
         removeBand() {
             // need delete all logs
             this.disconnectApiCall()
-            this.removeBandDbApiCall().then(()=>{
+            this.unpairBandDbApiCall().then(()=>{
                 this.$session.remove('miband')
                 this.updateListDisplay()
             })
