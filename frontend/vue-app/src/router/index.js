@@ -27,11 +27,6 @@ export default new VueRouter({
             component: () => import('@/components/account/Profile.vue')
         },
         {
-            path: '/profile/edit',
-            name: 'profile-edit',
-            component: () => import('@/components/account/EditForm.vue')
-        },
-        {
             path: '/data',
             name: 'data',
             component: () => import('@/components/Data.vue')

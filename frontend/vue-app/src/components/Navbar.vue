@@ -7,9 +7,11 @@
     <b-collapse id="nav-collapse" is-nav>
       <b-navbar-nav v-if="this.$session.exists()">
         <b-nav-item>
+          <router-link to="/profile" class="text-light">Profile</router-link>
+        </b-nav-item>
+        <b-nav-item>
           <router-link to="/data" class="text-light">Data</router-link>
         </b-nav-item>
-        <b-nav-item href="#" disabled>Disabled</b-nav-item>
       </b-navbar-nav>
 
       <!-- Right aligned nav items -->
@@ -23,9 +25,9 @@
           </b-button>
         </div>
         <div v-if="this.$session.exists()" >
-          <b-button variant="success" class="mr-2 ">
+          <!-- <b-button variant="success" class="mr-2 ">
             <router-link to="/profile" class="text-light">Profile</router-link>
-          </b-button>
+          </b-button> -->
           <b-button variant="danger" @click="signout">Sign Out</b-button>
         </div>      
       </b-navbar-nav>

@@ -3,11 +3,19 @@
     <b-card v-if="$session.get('miband')!=undefined">
       <div class="card-header d-flex justify-content-between">
         <h4>Miband</h4>
-        <b-button 
-          v-b-tooltip.hover title="Unpair device"
-          v-b-modal.confirm-remove-modal
-          variant="outline-danger"
-        >✖️</b-button>
+        <div>
+          <b-button 
+            v-b-tooltip.hover title="Edit"
+            v-b-modal.confirm-remove-modal
+            variant="outline-primary"
+          >📝</b-button>
+          <b-button  class="ml-2"
+            v-b-tooltip.hover title="Unpair"
+            v-b-modal.confirm-remove-modal
+            variant="outline-danger"
+          >✖️</b-button>
+        </div>
+        
 
         <b-modal id="confirm-remove-modal" hide-footer title="Confirmation">
           <div class="d-block text-center">
@@ -21,14 +29,12 @@
         </b-modal>
       </div>
 
-      
-
       <b-list-group horizontal>
-        <b-list-group-item class="w-25">MAC address</b-list-group-item>
+        <b-list-group-item class="w-25">MAC</b-list-group-item>
         <b-list-group-item class="w-75">{{miband.mac_address}}</b-list-group-item>
       </b-list-group>
       <b-list-group horizontal>
-        <b-list-group-item class="w-25">Authentic key</b-list-group-item>
+        <b-list-group-item class="w-25">Key</b-list-group-item>
         <b-list-group-item class="w-75">{{miband.auth_key}}</b-list-group-item>
       </b-list-group>
       

@@ -68,13 +68,20 @@ def change_password(id):
             dklen=128
         )
 
-        user = User.query.filter_by(email=email).first()
+        user = User.query.filter_by(id=id).first()
         user.password_hashed = hashed_pw
         user.password_salt = salt
         db.session.commit()
-        return jsonify(user.serialize())
+        response = jsonify({
+            'change-pw-result' : 'succeeded'
+        })
     except Exception as e:
-        return str(e)
+        response = jsonify({
+            'change-pw-result' : 'failed'
+        })
+        print(str(e))
+    
+    return response
 
 
 @app.route('/users/login', methods=['POST'])
@@ -113,7 +120,7 @@ def login():
     except Exception as e:
         return str(e)
 
-@app.route('/users/<id>/checkpassword', methods=['POST'])
+@app.route('/users/<id>/validate-password', methods=['POST'])
 def check_password(id):
     try:
         user = User.query.filter_by(id=id).first()
@@ -129,14 +136,19 @@ def check_password(id):
         )
 
         if(hashed_pw == user.password_hashed):
-            return jsonify({
-                'result': 'correct'
+            response = jsonify({
+                'validate-result': 'correct'
             })
-        return jsonify({
-            'result': 'incorrect'
+        else: response =jsonify({
+            'validate-result': 'incorrect'
         })
     except Exception as e:
-        return str(e)
+        response =jsonify({
+            'validate-result': 'error'
+        })
+        print(e)
+    
+    return response
 
 
 @app.route('/users/<id>', methods=['DELETE'])

@@ -5,12 +5,12 @@
                 <div class="d-flex justify-content-center">
                     <b-avatar :text="avatarStr" size="6rem"></b-avatar>
                 </div>
-                <b-card-title v-if="user.fullname==null&&nameUpdateMode!=true" class="text-center mt-2">
-                    <b-button variant="outline-primary" @click="enterNameUpdateMode">
+                <b-card-title v-if="user.fullname==null&&updateNameMode!=true" class="text-center mt-2">
+                    <b-button variant="outline-primary" @click="enterUpdateNameMode">
                         Please tell us your name 📝
                     </b-button>
                 </b-card-title>
-                <b-card-title v-else-if="nameUpdateMode==true" class="text-center mt-2">
+                <b-card-title v-else-if="updateNameMode==true" class="text-center mt-2">
                     <b-form @submit.prevent="updateName" inline class="d-flex justify-content-around">
                         <b-form-input class="w-75"
                         v-model="user.fullname"
@@ -18,28 +18,31 @@
                     ></b-form-input>
                     <div>
                         <b-button @click="updateName" variant="success" class="mr-1">OK</b-button>
-                        <b-button @click="exitNameUpdateMode" variant="danger">✖️</b-button>
+                        <b-button @click="exitUpdateNameMode" variant="danger">✖️</b-button>
                     </div>
                     </b-form>
                 </b-card-title>
                 <b-card-title v-else class="text-center mt-2">
                     {{user.fullname}}
-                    <b-button variant="outline-primary" @click="enterNameUpdateMode">📝</b-button>
+                    <b-button variant="outline-primary" @click="enterUpdateNameMode">📝</b-button>
                 </b-card-title>
                 <b-card-sub-title class="text-center">{{user.email}}</b-card-sub-title>
-                <div class="d-flex justify-content-center">
+                <!-- <div class="d-flex justify-content-center">
                     <b-card-text>🏆 Strike: 4days</b-card-text>
-                </div>
+                </div> -->
             </template>
 
             <device-management />
 
-            <b-card title="More" class="mt-1">
+            <!-- <b-card title="More" class="mt-1">
                 <b-button variant="outline-primary" class="w-100">Set goal</b-button>
-            </b-card>
+            </b-card> -->
 
             <b-card title="Account" class="mt-1">
-                <b-button variant="outline-primary" class="w-100 mb-1">Change password</b-button>
+                <b-button variant="outline-primary" class="w-100 mb-1"
+                    @click="enterChangePwMode"
+                >Change password</b-button>
+                <ChangePasswordForm v-if="changePwMode==true" @exit-change-pw-mode="exitChangePwMode"/>
                 <b-button variant="outline-primary" class="w-100">Delete account</b-button>
             </b-card>
 
@@ -50,10 +53,12 @@
 
 <script>
 import DeviceManagement from '@/components/DeviceManagement'
+import ChangePasswordForm from '@/components/account/ChangePasswordForm.vue'
 
 export default {
     components: { 
-        DeviceManagement
+        DeviceManagement,
+        ChangePasswordForm
     },
     created() {
         // console.log(this.user)
@@ -64,18 +69,25 @@ export default {
         return {
             user: this.$session.get('user'),
             avatarStr: '',
-            nameUpdateMode: false,
+            updateNameMode: false,
+            changePwMode: false,
             user_db_host: this.$api_hosts['user_db_api'],
             user_db_port: this.$api_ports['user_db_api']
         }
     },
     methods: {
-        enterNameUpdateMode() {
-            this.nameUpdateMode = true
+        enterUpdateNameMode() {
+            this.updateNameMode = true
         },
-        exitNameUpdateMode() {
+        exitUpdateNameMode() {
             this.user.fullname=this.$session.get('user').fullname
-            this.nameUpdateMode = false
+            this.updateNameMode = false
+        },
+        enterChangePwMode() {
+            this.changePwMode = true
+        },
+        exitChangePwMode() {
+            this.changePwMode = false
         },
 
         generateAvtStr() {
@@ -115,7 +127,7 @@ export default {
             this.updateNameApiCall(this.user.fullname).then((user)=>{
                 this.$session.set('user', user)
                 this.generateAvtStr()
-                this.exitNameUpdateMode()
+                this.exitUpdateNameMode()
                 // this.$forceUpdate
             })
         },

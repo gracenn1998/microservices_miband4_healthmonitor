@@ -21,7 +21,7 @@
             </b-list-group-item>
 
             <b-list-group-item class="d-flex justify-content-between align-items-center">
-                <h5>Travelled distance</h5>
+                <h5>Travelled distance in meter(s)</h5>
                 <b-avatar :text="String(generaldata['meters'])" size="4em" variant="success"></b-avatar>
             </b-list-group-item>
         </b-list-group>
