@@ -63,24 +63,10 @@ export default {
         }
     },
     mounted(){
-        if(this.lastGetDataTime==null){
-            this.lastGetDataTime = new Date()
-            this.addDataFromLastTimestampDb().then(()=>{
-                this.getDatabyDateDb(this.datevalue)
-                
-            })
-        }
-        else {
-            var now = new Date()
-            var diff = now - this.lastGetDataTime
-            if(diff >= 4*60*60*1000) {
-                this.lastGetDataTime = now
-                this.addDataFromLastTimestampDb().then(()=>{
-                    this.getDatabyDateDb(this.datevalue)
-                })
-            }
+        this.addDataFromLastTimestampDb().then(()=>{
+            this.getDatabyDateDb(this.datevalue)
+        })
 
-        }
         this.getDatabyDateDb(this.datevalue)
         this.generateDataSet()
     },
@@ -210,16 +196,15 @@ export default {
         },
 
         getDatabyDateDb(inputdatestr) {
-            var date = new Date(inputdatestr)
-            var day, month, year, datestr, startstr, endstr
-            day = date.getDate()
-            month = date.getMonth()+1
-            year = date.getFullYear()
-            datestr = day + '.' + month + '.' + year
-            startstr = datestr + ' - 0:00'
-            endstr = datestr + ' - 23:59'
+            var today = new Date(inputdatestr)
+            var startTs, endTs, startstr, endstr
+            startTs = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+            endTs = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59)
+            startstr = this.generateApiUTCTimeStr(startTs)
+            endstr = this.generateApiUTCTimeStr(endTs)
+            
             this.getDataByTimeApiCallDb(startstr, endstr).then((result)=>{
-                this.activitydata  = result 
+                this.activitydata  = result
                 this.getDataStatus = "OK"
             })
             this.getDataStatus = "PENDING"
@@ -242,6 +227,7 @@ export default {
         
         async getDataFromLastTimestampMiband(){
             const lastTsStr = await this.getLastFetchingDataTimestampDb()
+            
             var lastTs
             if(lastTsStr==''){
                 lastTs = new Date()
@@ -249,7 +235,6 @@ export default {
             else {
                 lastTs = new Date(lastTsStr)           
             }
-
             const logs = await this.getDataMibandFrom(lastTs)
             return logs
         },
@@ -259,16 +244,51 @@ export default {
             if(logs) {
                 if(Object.entries(logs).length!=0){
                     var laststr = Object.keys(logs)[Object.keys(logs).length-1]
-                    await this.addLogsDb(logs)
-                    this.setLastFetchingDataTimestampDb(laststr)
+
+                    this.convertLogsToUTC(logs)
+                    
+                    var add_result = await this.addLogsDb(logs)
+                    if(add_result) {
+                        this.setLastFetchingDataTimestampDb(laststr)
+
+                        this.lastGetDataTime = this.generateTimestampFromApiStr(laststr)
+                    }
                 }
             }
             
         },
 
+        convertLogsToUTC(logs) {
+            for(var ts in logs) {
+                var timestamp = this.generateTimestampFromApiStr(ts)
+                var apiUTCStr = this.generateApiUTCTimeStr(timestamp)
+                logs[apiUTCStr] = logs[ts]
+                delete logs[ts]
+            }
+        },
+
+        generateApiUTCTimeStr(timestamp) {
+            var result, datestr, timestr, d, M, y, h, m
+            d = timestamp.getUTCDate()
+            M = timestamp.getUTCMonth()+1
+            y = timestamp.getUTCFullYear()
+            h = timestamp.getUTCHours()
+            m = timestamp.getUTCMinutes()
+            if(m<10) {
+                m = '0'+m
+            }
+            datestr = d + '.' + M + '.' + y
+            timestr = h + ':' + m
+            result = datestr + ' - ' + timestr
+            return result
+
+        },
+
         generateApiTimeStr(timestamp) {
             var result, datestr, timestr, d, M, y, h, m
             d = timestamp.getDate()
+            //api string: real month | Date month system 0-11: 0: Jan, 1: Feb,...
+            //--> +1
             M = timestamp.getMonth()+1
             y = timestamp.getFullYear()
             h = timestamp.getHours()
@@ -279,6 +299,20 @@ export default {
             datestr = d + '.' + M + '.' + y
             timestr = h + ':' + m
             result = datestr + ' - ' + timestr
+            return result
+        },
+
+        generateTimestampFromApiStr(timestr) {
+            // dd.MM.yyyy - hh.mm
+            var result, d, M, y, h, m
+            d = timestr.slice(0,2)
+            //api string: real month | Date month system 0-11: 0: Jan, 1: Feb,...
+            //--> -1
+            M = parseInt(timestr.slice(3,5)) - 1
+            y = timestr.slice(6,10)
+            h = timestr.slice(13,15)
+            m = timestr.slice(16,18)
+            result = new Date(y, M, d, h, m)
             return result
         },
 
@@ -302,12 +336,14 @@ export default {
         },
 
         async setLastFetchingDataTimestampDb(last){
+            const timestamp = this.generateTimestampFromApiStr(last)
+            const utcStr = this.generateApiUTCTimeStr(timestamp)
             const bandid = this.$session.get('miband').id
             try{
                 const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/last-fetch-time`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    'last': last
+                    'last': utcStr
                     }),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
                 })

@@ -157,7 +157,14 @@ def delete_user(id):
         user = User.query.filter_by(id=id).first()
         db.session.delete(user)
         db.session.commit()
-        return 'Deleted'
+        response = jsonify({
+            'delete-result': 'succeeded'
+        })
     except Exception as e:
-        return str(e)
+        response = jsonify({
+            'delete-result': 'succeeded'
+        })
+        print(e)
+    
+    return response
 

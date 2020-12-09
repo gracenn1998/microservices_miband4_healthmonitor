@@ -5,7 +5,9 @@
         <b-button variant="outline-primary">Sign Up Form</b-button>
       </div>
       <div v-if="submitStatus === 'OK'">
-        <b-alert variant="success" show>Signed up successfully. Sign in now?</b-alert>
+        <b-alert variant="success" show>Signed up successfully. 
+          <router-link to="/signin">Sign in now?</router-link>
+        </b-alert>
       </div>
       <div v-if="submitStatus === 'ERROR'">
         <b-alert variant="danger" show>Please check all the fields again.</b-alert>
@@ -138,13 +140,11 @@ export default {
     },
     async addUser(user) {
       try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users`, {
+        await fetch(`http://${this.user_db_host}:${this.user_db_port}/users`, {
           method: 'POST',
           body: JSON.stringify(user),
           headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const data = await response
-        console.log(data)
       } catch (error) {
         console.error(error)
       }

@@ -68,7 +68,6 @@ export default {
       try {
           const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/disconnect`)
           const result = await response.json()
-          console.log(result)
           return result
       } catch (error) {
           // do something with `error`

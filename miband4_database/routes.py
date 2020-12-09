@@ -281,13 +281,18 @@ def set_last_time_of(id):
     
 #     return response
 
-# @app.route('/users/<userid>/logs', methods=['DELETE'])
-# def delete_logs_of(userid):
-#     try:
-#         logs=ActivityRecord.query.filter_by(user_id=userid).delete()
-#         db.session.commit()
-#         return jsonify({
-#             'delete-result': 'succeeded'
-#         })
-#     except Exception as e:
-#         return str(e)
+@app.route('/users/<userid>/logs', methods=['DELETE'])
+def delete_logs_of(userid):
+    try:
+        logs=ActivityRecord.query.filter_by(user_id=userid).delete()
+        db.session.commit()
+        response = jsonify({
+            'delete-result': 'succeeded'
+        })
+    except Exception as e:
+        response = jsonify({
+            'delete-result': 'succeeded'
+        })
+        print(e)
+    
+    return response

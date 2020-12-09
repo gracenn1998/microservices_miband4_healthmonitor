@@ -37,11 +37,11 @@
           ></b-form-input>
       </b-form-group>
 
-      <b-form-group>
+      <!-- <b-form-group>
           <b-form-checkbox-group v-model="form.checked">
           <b-form-checkbox value="remember">Remember me</b-form-checkbox>
           </b-form-checkbox-group>
-      </b-form-group>
+      </b-form-group> -->
 
       <div class="d-flex justify-content-center">
         <b-button type="signin" variant="primary">SignIn</b-button>
@@ -107,7 +107,7 @@ export default {
             this.$session.set('user', result)
             
             //routing to homepage
-            this.$emit("loginStatusChange")
+            this.$emit("login-status-change")
             this.$router.push('/')
           } else { //if sign in failed
             this.submitStatus = 'ERROR'

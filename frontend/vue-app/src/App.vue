@@ -1,8 +1,8 @@
 <template>
   <div id="app">
-    <Navbar :key="navKey" @loginStatusChange="loginUpdate"/>
+    <Navbar :key="navKey" @login-status-change="loginUpdate"/>
     <!-- <Sidebar v-if="this.$session.exists()"/> -->
-    <router-view @loginStatusChange="loginUpdate"/>
+    <router-view @login-status-change="loginUpdate"/>
     <!-- <PairDeviceForm />
     <Data />
     <SignUpForm />

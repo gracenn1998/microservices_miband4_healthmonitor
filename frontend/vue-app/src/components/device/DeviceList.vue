@@ -4,11 +4,11 @@
       <div class="card-header d-flex justify-content-between">
         <h4>Miband</h4>
         <div>
-          <b-button 
+          <!-- <b-button 
             v-b-tooltip.hover title="Edit"
             v-b-modal.confirm-remove-modal
             variant="outline-primary"
-          >📝</b-button>
+          >📝</b-button> -->
           <b-button  class="ml-2"
             v-b-tooltip.hover title="Unpair"
             v-b-modal.confirm-remove-modal

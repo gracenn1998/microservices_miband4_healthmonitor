@@ -32,6 +32,14 @@
                 </div> -->
             </template>
 
+            <b-skeleton-wrapper :loading="deleteStatus === 'PENDING'">
+                <template #loading>
+                <b-card>
+                <b-skeleton width="85%"></b-skeleton>
+                <b-skeleton width="55%"></b-skeleton>
+                <b-skeleton width="70%"></b-skeleton>
+                </b-card>
+            </template>
             <device-management />
 
             <!-- <b-card title="More" class="mt-1">
@@ -43,10 +51,22 @@
                     @click="enterChangePwMode"
                 >Change password</b-button>
                 <ChangePasswordForm v-if="changePwMode==true" @exit-change-pw-mode="exitChangePwMode"/>
-                <b-button variant="outline-primary" class="w-100">Delete account</b-button>
+                <b-button variant="outline-primary" class="w-100" v-b-modal.confirm-delete-modal >Delete account</b-button>
+                
             </b-card>
-
+            
+            <b-modal id="confirm-delete-modal" hide-footer title="Confirmation">
+                <div class="d-block text-center">
+                    <h4>Do you really want to delete this account?</h4>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <b-button class="mt-3 mr-3"  @click="$bvModal.hide('confirm-delete-modal')">Cancel</b-button>
+                    <b-button class="mt-3 mr-4" variant="danger" @click="deleteAndCloseModal()">Delete</b-button>
+                </div>
+            </b-modal>
+            </b-skeleton-wrapper>
         </b-card>
+        
     </div>
 </template>
 
@@ -71,8 +91,13 @@ export default {
             avatarStr: '',
             updateNameMode: false,
             changePwMode: false,
+            deleteStatus: '',
             user_db_host: this.$api_hosts['user_db_api'],
-            user_db_port: this.$api_ports['user_db_api']
+            user_db_port: this.$api_ports['user_db_api'],
+            miband_db_host: this.$api_hosts['miband_db_api'],
+            miband_db_port: this.$api_ports['miband_db_api'],
+            miband_host: this.$api_hosts['miband_api'],
+            miband_port: this.$api_ports['miband_api']
         }
     },
     methods: {
@@ -130,6 +155,93 @@ export default {
                 this.exitUpdateNameMode()
                 // this.$forceUpdate
             })
+        },
+
+        async deleteLogsApiCall() {
+            const user_id = this.$session.get('user').id
+            try {
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/users/${user_id}/logs`, {
+                    method: 'DELETE'
+                })
+                const result = await response.json()
+                if(result['delete-result']=='succeeded') {
+                    return true
+                }
+                return false
+            }
+            catch (error) {
+                console.log(error)
+            }
+        },
+
+        async deleteUserApiCall() {
+            const user_id = this.$session.get('user').id
+            try {
+                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${user_id}`, {
+                    method: 'DELETE'
+                })
+                const result = await response.json()
+                if(result['delete-result']=='succeeded') {
+                    return true
+                }
+                return false
+            }
+            catch (error) {
+                console.log(error)
+            }
+        },
+
+        async unpairBandDbApiCall() {
+            const bandid = this.$session.get('miband').id
+            try {
+                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/unpair`)
+                const result = await response.json()
+
+                // do something with `data`
+                if(result['unpair-band-result']=="succeeded")
+                    return true
+                else return false
+            } catch (error) {
+                // do something with `error`
+            }
+        },
+
+        async disconnectApiCall() {
+            try {
+                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/disconnect`)
+                const result = await response.json()
+                console.log(result)
+                return result
+            } catch (error) {
+                // do something with `error`
+            }
+        },
+
+        async deleteAndCloseModal() {
+            this.$bvModal.hide('confirm-remove-modal')
+
+            this.deleteStatus = 'PENDING'
+            
+            const deleteLogsResult = await this.deleteLogsApiCall()
+            var unpairBandResult = true
+            var deleteUserResult
+            if(deleteLogsResult) { //if succeeded
+                console.log(this.$session.get('miband'))
+                if(this.$session.get('miband')!=undefined) { //if pairing band exist
+                    console.log('??')
+                    await this.disconnectApiCall()
+                    unpairBandResult = await this.unpairBandDbApiCall()
+                }
+            }
+            if(unpairBandResult) {
+                deleteUserResult = await this.deleteUserApiCall()
+                if(deleteUserResult) {
+                    this.deleteStatus = 'OK'
+                    this.$session.destroy()
+                    this.$emit('login-status-change')
+                    this.$router.push('/')
+                }
+            }
         },
     }
 }
