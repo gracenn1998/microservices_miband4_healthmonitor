@@ -24,8 +24,12 @@
 </template>
 
 <script>
+import * as miband_conn from '@/api_calls/MibandConnection.js'
+import * as miband_db from '@/api_calls/MibandDb.js'
+
 import GeneralData from '@/components/data/GeneralData'
 import DataType from '@/components/data/DataType'
+
 export default {
   components: {
     GeneralData,
@@ -33,71 +37,30 @@ export default {
   },
   data() {
     return {
-      miband: this.$session.get('miband'),
       hr_key: false,
       connectStatus: '',
       gdkey: false,
-      miband_db_host: this.$api_hosts['miband_db_api'],
-      miband_db_port: this.$api_ports['miband_db_api'],
-      miband_host: this.$api_hosts['miband_api'],
-      miband_port: this.$api_ports['miband_api']
     }
   },
   created() {
-    var miband = this.miband
-    if(miband==undefined) {
-      this.getBandInfo().then((bandinfo)=>{
-        this.$session.set('miband', bandinfo)
+    //get data if not stored in session yet
+    if(this.$session.get('miband')==undefined) {
+      const userid = this.$session.get('user').id
+
+      miband_db.getUserBandInfo(userid).then((bandinfo)=>{
+        if(bandinfo){
+          this.$session.set('miband', bandinfo)
+          this.$emit('update-list-display')
+        }
       })
     }
   },
 
   methods: {
-    async getBandInfo() {
-      const userid = this.$session.get('user').id
-      try {
-          const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/getbandbyuser/${userid}`)
-          const result = await response.json()
-          return result
-      } catch (error) {
-          // do something with `error`
-      }
-    },
-
-    async disconnectApiCall() {
-      try {
-          const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/disconnect`)
-          const result = await response.json()
-          return result
-      } catch (error) {
-          // do something with `error`
-      }
-    },
-
-    async connectApiCall(mac_add, auth_key) {
-      try {
-          const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/connect`, {
-          method: 'POST',
-          body: JSON.stringify({
-              'mac_add': mac_add,
-              'auth_key': auth_key
-              }),
-          headers: { 'Content-type': 'application/json; charset=UTF-8' },
-          })
-          const result = await response.json()
-          if(result['connect-result']=='succeeded') {
-            return result['band-info']
-          }
-          else return false
-      } catch (error) {
-          console.error(error)
-      }
-    },
-
     reconnect() {
-      var miband = this.miband
-      this.disconnectApiCall().then(
-        this.connectApiCall(miband.mac_address, miband.auth_key).then((result)=>{
+      var miband = this.$session.get('miband')
+      miband_conn.disconnectApiCall().then(
+        miband_conn.connectApiCall(miband.mac_address, miband.auth_key).then((result)=>{
           if(result) {
             this.connectStatus='OK'
             this.gdkey = !this.gdkey
@@ -109,7 +72,6 @@ export default {
       )
       this.connectStatus='PENDING'
     }
-
   }
 }
 </script>

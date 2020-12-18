@@ -19,18 +19,6 @@ Vue.use(VueSession, options)
 
 Vue.config.productionTip = false
 
-
-Vue.prototype.$api_hosts= {
-  miband_api: '192.168.11.119',
-  miband_db_api: '192.168.11.119',
-  user_db_api: '192.168.11.119'
-}
-Vue.prototype.$api_ports = {
-  miband_api: '5001',
-  miband_db_api: '5002',
-  user_db_api: '5000'
-}
-
 new Vue({
   el: '#app',
   render: h => h(App),

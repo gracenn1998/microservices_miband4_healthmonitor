@@ -29,13 +29,12 @@
 </template>
 
 <script>
+import * as miband_conn from '@/api_calls/MibandConnection.js'
+
 export default {
-    // props: ['generaldata'],
     data() {
         return {
             generaldata: null,
-            miband_host: this.$api_hosts['miband_api'],
-            miband_port: this.$api_ports['miband_api']
         }
     },
     mounted() {
@@ -44,20 +43,8 @@ export default {
         }
     },
     methods: {
-        async getGeneralDataApiCall() {
-            try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/general`)
-                const result = await response.json()
-                if(result['get-step-result']==='succeeded')
-                    return result['stepinfo']
-                return false
-            } catch (error) {
-                // do something with `error`
-            }
-        },
-
         getGeneralData() {
-            this.getGeneralDataApiCall().then((result)=>{
+            miband_conn.getGeneralDataApiCall().then((result)=>{
                 if(result) {
                     this.generaldata = result
                 }

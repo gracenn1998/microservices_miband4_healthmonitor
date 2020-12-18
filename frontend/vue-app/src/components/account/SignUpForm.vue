@@ -68,6 +68,8 @@
 </template>
 
 <script>
+import * as user from '@/api_calls/User.js'
+
 export default {
   computed: {
     emailState() {
@@ -113,50 +115,18 @@ export default {
       show: true,
       validEmail: null,
       submitStatus: null,
-      user_db_host: this.$api_hosts['user_db_api'],
-      user_db_port: this.$api_ports['user_db_api']
-      // get user_db_host() {
-      //   return this.$api_hosts['user_db_api']
-      // },
-      // get user_db_port() {
-      //   return this.$api_ports['user_db_api']
-      // },
     }
   },
 
   methods: {
-    async validateEmail(email) {
-      const params = 'email='+email
-      try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/find-by-email?${params}`)
-        const result = await response.json()
-        if (result.user!=null) {
-          return false
-        }
-        return true
-      } catch (error) {
-        console.error(error)
-      }
-    },
-    async addUser(user) {
-      try {
-        await fetch(`http://${this.user_db_host}:${this.user_db_port}/users`, {
-          method: 'POST',
-          body: JSON.stringify(user),
-          headers: { 'Content-type': 'application/json; charset=UTF-8' },
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    },
     onSubmit(evt) {
       evt.preventDefault()
       //check if entered pw and cfpw are valid or not
       if(this.pwState && this.cfPwState) { //if both are valid
-        this.validateEmail(this.form.email).then((ableToAdd)=>{ 
+        user.validateEmailApiCall(this.form.email).then((ableToAdd)=>{ 
           //check if email is valid or not
           if(ableToAdd) { //if email hasnt been used
-            this.addUser(this.form).then(()=>{
+            user.addUserApiCall(this.form).then(()=>{
               this.validEmail = true
               this.submitStatus = 'OK'
             })

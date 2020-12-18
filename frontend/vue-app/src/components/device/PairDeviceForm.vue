@@ -63,6 +63,8 @@
 </template>
 
 <script>
+import * as miband_conn from '@/api_calls/MibandConnection.js'
+import * as miband_db from '@/api_calls/MibandDb.js'
 
 export default {
   computed: {
@@ -100,113 +102,27 @@ export default {
           auth_key: '2f20ba44fdcf54ca0c2c37cad1f85487'
       },
       pairingStatus: null,
-      miband_db_host: this.$api_hosts['miband_db_api'],
-      miband_db_port: this.$api_ports['miband_db_api'],
-      miband_host: this.$api_hosts['miband_api'],
-      miband_port: this.$api_ports['miband_api']
     }
   },
   methods: {
-    async connectBandApiCall(mac_add, auth_key) {
-        try {
-            const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/connect`, {
-            method: 'POST',
-            body: JSON.stringify({
-                'mac_add': mac_add,
-                'auth_key': auth_key
-                }),
-            headers: { 'Content-type': 'application/json; charset=UTF-8' },
-            })
-            const result = await response.json()
-            if(result['connect-result']=='succeeded') {
-              return result['band-info']
-            }
-            else return false
-        } catch (error) {
-            console.error(error)
-        }
-    },
-
-    async addNewBandDtbApiCall(miband) {
-        const user_id = this.$session.get('user').id
-        const bodydata = {}
-        for (var key in miband) {
-          bodydata[key] = miband[key]
-        }
-        bodydata['user_id'] = user_id
-        try {
-            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands`, {
-            method: 'POST',
-            body: JSON.stringify(
-                bodydata
-                ),
-            headers: { 'Content-type': 'application/json; charset=UTF-8' },
-            })
-            const result = await response.json()
-            if(result['add-band-result']=='succeeded') {
-              return result['band-info']
-            }
-            else return false
-        } catch (error) {
-            console.error(error)
-        }
-    },
-
-    async addAvailableBandDtbApiCall(miband) {
-        const user_id = this.$session.get('user').id
-        const band_id = miband.id
-        const bodydata = {}
-        for (var key in miband) {
-          bodydata[key] = miband[key]
-        }
-        bodydata['user_id'] = user_id
-        try {
-            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${band_id}/update-new-user`, {
-            method: 'PUT',
-            body: JSON.stringify(
-                bodydata
-                ),
-            headers: { 'Content-type': 'application/json; charset=UTF-8' },
-            })
-            const result = await response.json()
-            if(result['add-band-result']=='succeeded') {
-              return result['band-info']
-            }
-            else return false
-        } catch (error) {
-            console.error(error)
-        }
-    },
-
-    async getBandBySerial(serial) {
-      const params = 'serial='+serial
-      try {
-        const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/find-by-serial?${params}`)
-        const result = await response.json()
-        if(result['get-band-result']=='succeeded'){
-          return result['band-info']
-        }
-        else return false
-      }
-      catch (error){
-        console.log(error)
-      }
-    },
-    
-
     addBand(mac_add, auth_key) {
+      //reset error msg
+      this.pairingStatus = null
+
+      const user_id = this.$session.get('user').id 
+
       if(this.macaddState && this.authkeyState) {
-        this.connectBandApiCall(mac_add, auth_key).then((band)=>{
-          if(band) {
-            //save dtb
+        miband_conn.connectApiCall(mac_add, auth_key).then((band)=>{
+          if(band) { //connect succeeded -> valid band info -> save dtb
             //assign band info to miband ref
             for(var key in band) {
               this.miband[key] = band[key]
             }
 
-            this.getBandBySerial(band['serial']).then((band)=>{
+            //pair new band that is not saved in dtb yet
+            miband_db.getBandBySerial(band['serial']).then((band)=>{
               if(!band) { //no band with same serial
-                this.addNewBandDtbApiCall(this.miband).then((result)=>{
+                miband_db.pairNewBandDtbApiCall(user_id, this.miband).then((result)=>{
                   if(result) {
                     this.$session.set('miband', result)
                     //finished
@@ -221,7 +137,7 @@ export default {
                   this.pairingStatus = 'UNAVAILABLE'
                 }
                 else { //this band is currently free
-                  this.addAvailableBandDtbApiCall(band).then((result)=>{
+                  miband_db.pairAvailableBandDtbApiCall(user_id, band).then((result)=>{
                     if(result) {
                       this.$session.set('miband', result)
                       //finished

@@ -35,8 +35,10 @@
 
 
 <script>
-import DataChart from '@/components/data/DataChart'
+import * as miband_conn from '@/api_calls/MibandConnection.js'
+import * as miband_db from '@/api_calls/MibandDb.js'
 
+import DataChart from '@/components/data/DataChart'
 
 var today = new Date()
 
@@ -55,11 +57,6 @@ export default {
             hourvalue: null,
             chartkey: false,
             getDataStatus: '',
-            miband_host: this.$api_hosts['miband_api'],
-            miband_port: this.$api_ports['miband_api'],
-            miband_db_host: this.$api_hosts['miband_db_api'],
-            miband_db_port: this.$api_ports['miband_db_api'],
-            lastGetDataTime: null
         }
     },
     mounted(){
@@ -161,49 +158,20 @@ export default {
 
         },
 
-        async addLogsDb(logs) {
-            const band_id = this.$session.get('miband').id
-            const user_id = this.$session.get('user').id
-            try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${band_id}/${user_id}/logs`, {
-                method: 'POST',
-                body: JSON.stringify(logs),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
-                const result = await response.json()
-                if(result['add-logs-result']=='succeeded'){
-                    return true
-                }
-                else return false
-            } catch (error) {
-                console.error(error)
-            }
-        },
-
-        async getDataByTimeApiCallDb(start, end) {
-            const userid = this.$session.get('user').id
-            const params = 'start='+start + '&end='+end
-            try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/users/${userid}/logs/get-by-time?${params}`)
-                
-                const result = await response.json()
-                if(result['get-logs-result']==='succeeded')
-                    return result['logs']
-                return false
-            } catch (error) {
-                // do something with `error`
-            }
-        },
-
         getDatabyDateDb(inputdatestr) {
             var today = new Date(inputdatestr)
             var startTs, endTs, startstr, endstr
+            //start = todays' 0:00
             startTs = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+            //end = todays's 23:59
             endTs = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59)
+            //convert ts to str
             startstr = this.generateApiUTCTimeStr(startTs)
             endstr = this.generateApiUTCTimeStr(endTs)
+
+            const user_id = this.$session.get('user').id
             
-            this.getDataByTimeApiCallDb(startstr, endstr).then((result)=>{
+            miband_db.getUserLogByTimeDbApiCall(user_id, startstr, endstr).then((result)=>{
                 this.activitydata  = result
                 this.getDataStatus = "OK"
             })
@@ -211,22 +179,10 @@ export default {
 
         },
 
-        async getLastFetchingDataTimestampDb() {
-            const bandid = this.$session.get('miband').id
-            try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/last-fetch-time`)
-                const result = await response.json()
-                if(result['get-timestamp-result']=='succeeded'){
-                    return result['last-fetch-timestamp']
-                }
-                else return false
-            } catch (error){
-                console.log(error)
-            }
-        },
         
         async getDataFromLastTimestampMiband(){
-            const lastTsStr = await this.getLastFetchingDataTimestampDb()
+            const band_id = this.$session.get('miband').id
+            const lastTsStr = await miband_db.getLastFetchingDataTimestampDbApiCall(band_id)
             
             var lastTs
             if(lastTsStr==''){
@@ -235,23 +191,34 @@ export default {
             else {
                 lastTs = new Date(lastTsStr)           
             }
-            const logs = await this.getDataMibandFrom(lastTs)
+            
+            //get data from last ts to now
+            var start, end
+            start = this.generateApiTimeStr(lastTs)
+            end = this.generateApiTimeStr(new Date())
+            const logs = await miband_conn.getDataMibandFrom(start, end)
             return logs
         },
 
         async addDataFromLastTimestampDb() {
+            const band_id = this.$session.get('miband').id
+            const user_id = this.$session.get('user').id
             const logs = await this.getDataFromLastTimestampMiband()
-            if(logs) {
-                if(Object.entries(logs).length!=0){
-                    var laststr = Object.keys(logs)[Object.keys(logs).length-1]
 
+            if(logs) {//if api called successfully
+                if(Object.entries(logs).length!=0){ //if data read != null
+                    var laststr = Object.keys(logs)[Object.keys(logs).length-1]
+                    
+                    //save dtb in utc timestamp
                     this.convertLogsToUTC(logs)
                     
-                    var add_result = await this.addLogsDb(logs)
+                    var add_result = await miband_db.addLogsDbApiCall(user_id, band_id, logs)
                     if(add_result) {
-                        this.setLastFetchingDataTimestampDb(laststr)
 
-                        this.lastGetDataTime = this.generateTimestampFromApiStr(laststr)
+                        const timestamp = this.generateTimestampFromApiStr(laststr)
+                        const utcStr = this.generateApiUTCTimeStr(timestamp)
+
+                        miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
                     }
                 }
             }
@@ -287,7 +254,7 @@ export default {
         generateApiTimeStr(timestamp) {
             var result, datestr, timestr, d, M, y, h, m
             d = timestamp.getDate()
-            //api string: real month | Date month system 0-11: 0: Jan, 1: Feb,...
+            //api string: real month 1-12| Date month system 0-11: 0: Jan, 1: Feb,...
             //--> +1
             M = timestamp.getMonth()+1
             y = timestamp.getFullYear()
@@ -314,48 +281,6 @@ export default {
             m = timestr.slice(16,18)
             result = new Date(y, M, d, h, m)
             return result
-        },
-
-        async getDataMibandFrom(timestamp) {
-            var start, end
-            start = this.generateApiTimeStr(timestamp)
-            end = this.generateApiTimeStr(new Date())
-            const params = 'start='+start + '&end='+end
-            try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/activitydata?${params}`)
-                const result = await response.json()
-                if(result['log-data-result']=='succeeded'){
-                    return result['logs']
-                }
-                else return false
-            }
-            catch (error) {
-                console.log(error);
-            }
-            
-        },
-
-        async setLastFetchingDataTimestampDb(last){
-            const timestamp = this.generateTimestampFromApiStr(last)
-            const utcStr = this.generateApiUTCTimeStr(timestamp)
-            const bandid = this.$session.get('miband').id
-            try{
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/last-fetch-time`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    'last': utcStr
-                    }),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
-                const result = response.json()
-                if(result['set-timestamp-result']=='succeeded') {
-                    return true
-                }
-                return false
-            }
-            catch (error) {
-                console.log(error)
-            }
         },
 
         removeHourRange(){

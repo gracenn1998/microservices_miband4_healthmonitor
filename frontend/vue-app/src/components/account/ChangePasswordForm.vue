@@ -54,6 +54,8 @@
 </template>
 
 <script>
+import * as user from '@/api_calls/User.js'
+
 export default {
     data(){
         return {
@@ -63,8 +65,6 @@ export default {
                 confirmNewPassword: ''
             },
             submitStatus: '',
-            user_db_host: this.$api_hosts['user_db_api'],
-            user_db_port: this.$api_ports['user_db_api']
         }
     },
     computed: {
@@ -95,33 +95,12 @@ export default {
     },
 
     methods: {
-
-        async changePasswordApiCall(currentPassword, newPassword) {
-            const user_id = this.$session.get('user').id
-            try {
-                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${user_id}/change-password`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    'cur_password': currentPassword,
-                    'new_password': newPassword
-                    }),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
-                const result = await response.json()
-                if (result['change-pw-result']=='succeeded') { //sign in successfully
-                    return true
-                }
-                return false
-            } catch (error) {
-                console.error(error)
-            }
-        },
-
         changePassword(){
-            //validate current pw
+            const uid = this.$session.get('user').id
+            
             var cur_pw = this.form.currentPassword
             var new_pw = this.form.newPassword
-            this.changePasswordApiCall(cur_pw, new_pw).then((result)=>{
+            user.changePasswordApiCall(uid, cur_pw, new_pw).then((result)=>{
                 if(result) {//if succeeded
                     this.submitStatus = 'OK'
                     // this.$emit('exit-change-pw-mode')

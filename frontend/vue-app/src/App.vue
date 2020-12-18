@@ -28,7 +28,6 @@ export default {
   methods: {
     loginUpdate() {
       this.navKey = !this.navKey
-      this.$forceUpdate
     }
   }
 }

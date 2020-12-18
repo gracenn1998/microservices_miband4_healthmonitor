@@ -53,6 +53,8 @@
 </template>
 
 <script>
+import * as user from '@/api_calls/User.js'
+
 export default {
   data() {
     return {
@@ -64,42 +66,13 @@ export default {
       show: true,
       validSignin: null,
       submitStatus: null,
-      user_db_host: this.$api_hosts['user_db_api'],
-      user_db_port: this.$api_ports['user_db_api']
-      // get user_db_host() {
-      //   return this.$api_hosts['user_db_api']
-      // },
-      // get user_db_port() {
-      //   return this.$api_ports['user_db_api']
-      // },
     }
   },
   methods: {
-    async signin(email, password) {
-      try {
-        const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/login`, {
-          method: 'POST',
-          body: JSON.stringify({
-            'email': email,
-            'password': password
-            }),
-          headers: { 'Content-type': 'application/json; charset=UTF-8' },
-        })
-        const result = await response.json()
-        if (result['login-result']=='succeeded') { //sign in successfully
-          return result['user']
-        }
-        // if signin failed
-        return false
-      } catch (error) {
-        console.error(error)
-      }
-    },
-
     onSubmit(evt) {
       evt.preventDefault()
       //sign in api
-      this.signin(this.form.email, this.form.password).then((result)=>{
+      user.signinApiCall(this.form.email, this.form.password).then((result)=>{
           if(result) { //if sign in succeeded
             this.submitStatus = 'OK'
             //start session

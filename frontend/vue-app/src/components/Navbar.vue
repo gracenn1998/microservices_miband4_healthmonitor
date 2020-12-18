@@ -1,7 +1,7 @@
 <template>
 <div>
   <b-navbar toggleable="lg" type="dark" variant="dark">
-    <b-avatar text="MB4" size="3em"></b-avatar>
+    <b-avatar text="MB4" size="3em" to="/"></b-avatar>
     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
 
     <b-collapse id="nav-collapse" is-nav>
@@ -41,7 +41,7 @@ export default {
   methods: {
     signout() {
       this.$session.destroy()
-      this.$emit("loginStatusChange")
+      this.$emit("login-status-change")
       this.$router.push('/')
     }
   }

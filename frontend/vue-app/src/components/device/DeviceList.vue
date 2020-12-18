@@ -45,48 +45,32 @@
 </template>
 
 <script>
+import * as miband_db from '@/api_calls/MibandDb.js'
 
-  export default {
-    created() {
-      if(this.$session.get('miband')==undefined) {
-        this.getBandInfo().then((bandinfo)=>{
-          if(bandinfo){
-            this.$session.set('miband', bandinfo)
-            this.$emit('update-list-display')
-          }
-        })
-      }
-    },
-    data() {
-      return {
-        miband: this.$session.get('miband'),
+export default {
+  created() {
+    //get data if not stored in session yet
+    if(this.$session.get('miband')==undefined) {
+      const userid = this.$session.get('user').id
 
-        miband_db_host: this.$api_hosts['miband_db_api'],
-        miband_db_port: this.$api_ports['miband_db_api'],
-        miband_host: this.$api_hosts['miband_api'],
-        miband_port: this.$api_ports['miband_api']
-      }
-    },
-    methods: {
-      emitAndCloseModal() {
-        this.$emit('unpair-band')
-        this.$bvModal.hide('confirm-remove-modal')
-      },
-
-      async getBandInfo() {
-        const userid = this.$session.get('user').id
-        const params = '?user_id='+userid
-        try {
-            const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/find-by-userid${params}`)
-            const result = await response.json()
-            if(result['get-band-result']=='succeeded'){
-              return result['band-info']
-            }
-            return false
-        } catch (error) {
-            // do something with `error`
+      miband_db.getUserBandInfo(userid).then((bandinfo)=>{
+        if(bandinfo){
+          this.$session.set('miband', bandinfo)
+          this.$emit('update-list-display')
         }
-        },
+      })
     }
+  },
+  data() {
+    return {
+      miband: this.$session.get('miband'),
+    }
+  },
+  methods: {
+    emitAndCloseModal() {
+      this.$emit('unpair-band')
+      this.$bvModal.hide('confirm-remove-modal')
+    },
   }
+}
 </script>
