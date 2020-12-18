@@ -8,11 +8,9 @@ class User(db.Model):
     password_hashed = db.Column(db.LargeBinary, nullable=False)
     password_salt = db.Column(db.LargeBinary, nullable=False)
     fullname = db.Column(db.String(120))
-    dob = db.Column(db.DateTime)
-    gender = db.Column(db.String(1))
 
     def __repr__(self):
-        return f"User('{self.id}', '{self.email}', '{self.password}')"
+        return f"User('{self.id}')"
 
     def serialize(self):
         return {
@@ -21,6 +19,4 @@ class User(db.Model):
             'password_hashed': str(self.password_hashed),
             'password_salt': str(self.password_salt),
             'fullname': self.fullname,
-            'dob': self.dob,
-            'gender': self.gender
-        }
+        }   

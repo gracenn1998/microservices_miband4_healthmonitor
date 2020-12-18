@@ -95,33 +95,15 @@ export default {
     },
 
     methods: {
-        async validatePasswordApiCall(password) {
-            const user_id = this.$session.get('user').id
-            try {
-                const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${user_id}/validate-password`, {
-                method: 'POST',
-                body: JSON.stringify({
-                    'password': password
-                    }),
-                headers: { 'Content-type': 'application/json; charset=UTF-8' },
-                })
-                const result = await response.json()
-                if (result['validate-result']=='correct') { //sign in successfully
-                    return true
-                }
-                return false
-            } catch (error) {
-                console.error(error)
-            }
-        },
 
-        async changePasswordApiCall(newPassword) {
+        async changePasswordApiCall(currentPassword, newPassword) {
             const user_id = this.$session.get('user').id
             try {
                 const response = await fetch(`http://${this.user_db_host}:${this.user_db_port}/users/${user_id}/change-password`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    'password': newPassword
+                    'cur_password': currentPassword,
+                    'new_password': newPassword
                     }),
                 headers: { 'Content-type': 'application/json; charset=UTF-8' },
                 })
@@ -137,14 +119,12 @@ export default {
 
         changePassword(){
             //validate current pw
-            this.validatePasswordApiCall(this.form.currentPassword).then((validateResult)=>{
-                if(validateResult) {//if correct
-                    this.changePasswordApiCall(this.form.newPassword).then((result)=>{
-                        if(result) {//if succeeded
-                            this.submitStatus = 'OK'
-                            // this.$emit('exit-change-pw-mode')
-                        }
-                    })
+            var cur_pw = this.form.currentPassword
+            var new_pw = this.form.newPassword
+            this.changePasswordApiCall(cur_pw, new_pw).then((result)=>{
+                if(result) {//if succeeded
+                    this.submitStatus = 'OK'
+                    // this.$emit('exit-change-pw-mode')
                 }
                 else {
                     this.submitStatus = 'ERROR'
