@@ -13,7 +13,7 @@ POSTGRES = {
     'pw': '123123',
     'db': 'miband4_dtb',
     'host': 'localhost',
-    'port': '5432',
+    'port': '5430',
 }
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 db = SQLAlchemy(app)

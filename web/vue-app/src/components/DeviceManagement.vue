@@ -16,6 +16,9 @@
 </template>
 
 <script>
+import * as miband_conn from '@/api_calls/MibandConnection.js'
+import * as miband_db from '@/api_calls/MibandDb.js'
+
 import PairDeviceForm from '@/components/device/PairDeviceForm'
 import DeviceList from '@/components/device/DeviceList'
 
@@ -24,14 +27,24 @@ export default {
         PairDeviceForm,
         DeviceList
     },
+    created() {
+        //get data if not stored in session yet
+        if(this.$session.get('miband')==undefined) {
+            const userid = this.$session.get('user').id
+
+            miband_db.getUserBandInfo(userid).then((bandinfo)=>{
+                if(bandinfo){
+                this.$session.set('miband', bandinfo)
+                this.$emit('update-list-display')
+                }
+            })
+        }
+    },
+
     data() {
         return {
             addBandMode: false,
             listkey: false,
-            miband_db_host: this.$api_hosts['miband_db_api'],
-            miband_db_port: this.$api_ports['miband_db_api'],
-            miband_host: this.$api_hosts['miband_api'],
-            miband_port: this.$api_ports['miband_api']
         }
     },
     methods: {
@@ -46,35 +59,10 @@ export default {
             this.listkey = !this.listkey
         },
 
-        async unpairBandDbApiCall() {
-            const bandid = this.$session.get('miband').id
-            try {
-                const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bandid}/unpair`)
-                const result = await response.json()
-
-                // do something with `data`
-                if(result['unpair-band-result']=="succeeded")
-                    return true
-                else return false
-            } catch (error) {
-                // do something with `error`
-            }
-        },
-
-        async disconnectApiCall() {
-            try {
-                const response = await fetch(`http://${this.miband_host}:${this.miband_port}/band/disconnect`)
-                const result = await response.json()
-                return result
-            } catch (error) {
-                // do something with `error`
-            }
-        },
-
         removeBand() {
-            // need delete all logs
-            this.disconnectApiCall()
-            this.unpairBandDbApiCall().then(()=>{
+            const band_id = this.$session.get('miband').id
+            miband_conn.disconnectApiCall()
+            miband_db.unpairBandDbApiCall(band_id).then(()=>{
                 this.$session.remove('miband')
                 this.updateListDisplay()
             })

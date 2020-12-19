@@ -45,22 +45,8 @@
 </template>
 
 <script>
-import * as miband_db from '@/api_calls/MibandDb.js'
 
 export default {
-  created() {
-    //get data if not stored in session yet
-    if(this.$session.get('miband')==undefined) {
-      const userid = this.$session.get('user').id
-
-      miband_db.getUserBandInfo(userid).then((bandinfo)=>{
-        if(bandinfo){
-          this.$session.set('miband', bandinfo)
-          this.$emit('update-list-display')
-        }
-      })
-    }
-  },
   data() {
     return {
       miband: this.$session.get('miband'),
