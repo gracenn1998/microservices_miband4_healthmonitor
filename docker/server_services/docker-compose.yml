@@ -1,0 +1,45 @@
+version: '3'
+services:
+  database:
+    image: postgres:latest
+    env_file:
+      - database.env
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    ports:
+      - "5430:5432"
+    networks:
+      - healthmonitor-system-net
+    restart: always
+  user_db_api:
+    build: ./user_db_service
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/user_database/
+      - /user_database/migrations
+    depends_on:
+      - database
+    networks:
+      - healthmonitor-system-net
+  miband_db_api:
+    build: ./miband4_db_service
+    ports:
+      - "5002:5002"
+    volumes:
+      - .:/user_database/
+      - /miband4_database/migrations
+    depends_on:
+      - database
+    networks:
+      - healthmonitor-system-net
+  web:
+    build: ./web_service
+    ports:
+      - "8080:8080"
+    networks:
+      - healthmonitor-system-net
+volumes:
+  database-data:
+networks:
+  healthmonitor-system-net:
