@@ -1,10 +1,10 @@
 <template>
-    <div v-if="generaldata">
+    <div>
         <div class="d-flex d-flex justify-content-end mb-2">
             <b-button @click="getGeneralData" variant="light">🔄</b-button>
         </div>
         
-        <b-list-group>
+        <b-list-group v-if="generaldata">
             <b-list-group-item class="d-flex justify-content-between align-items-center">
                 <h5>Steps count</h5>
                 <b-avatar :text="String(generaldata['steps'])" size="4em" variant="success"></b-avatar>
@@ -45,9 +45,16 @@ export default {
     methods: {
         getGeneralData() {
             miband_conn.getGeneralDataApiCall().then((result)=>{
-                if(result) {
-                    this.generaldata = result
+                if(result['status-code']==200) {
+                    var data = result['response-data']['stepinfo']
+                    if(data) {
+                        this.generaldata = data
+                    }
                 }
+                else if(result['status-code']==500) {
+                    this.$emit('service-error')
+                }
+                
             })
         },
     }

@@ -100,16 +100,26 @@ export default {
             
             var cur_pw = this.form.currentPassword
             var new_pw = this.form.newPassword
-            user.changePasswordApiCall(uid, cur_pw, new_pw).then((result)=>{
-                if(result) {//if succeeded
-                    this.submitStatus = 'OK'
-                    // this.$emit('exit-change-pw-mode')
+            if(this.pwState && this.cfPwState) { //if both are valid 
+                user.changePasswordApiCall(uid, cur_pw, new_pw).then((result)=>{
+                if(result['status-code']==200) {
+                    if(result['response-data']['change-password-result'] == 'succeeded') {//if succeeded
+                        this.submitStatus = 'OK'
+                        // this.$emit('exit-change-pw-mode')
+                    }
+                    else {
+                        this.submitStatus = 'ERROR'
+                    }
                 }
-                else {
-                    this.submitStatus = 'ERROR'
+                else if(result['status-code']==500) {
+                    this.$emit('service-error')
+                    this.submitStatus = ''
                 }
+                
             })
-            this.submitStatus = 'PENDING'
+                this.submitStatus = 'PENDING'
+            }
+            
         }
 
 

@@ -64,6 +64,14 @@
       </div>
       </b-form>
     </b-card>
+
+    <b-modal id="service-error-modal" title="Server Error">
+        <div class="d-block text-center">
+            <h5>Some error happened...</h5>
+            <h1>🛠️</h1>
+            <h5>Please try again later</h5>
+        </div>
+    </b-modal>
   </div>
 </template>
 
@@ -123,18 +131,24 @@ export default {
       evt.preventDefault()
       //check if entered pw and cfpw are valid or not
       if(this.pwState && this.cfPwState) { //if both are valid
-        user.validateEmailApiCall(this.form.email).then((ableToAdd)=>{ 
-          //check if email is valid or not
-          if(ableToAdd) { //if email hasnt been used
+        user.getUserByEmailApiCall(this.form.email).then((result)=>{ 
+          //check if email is valid (used) or not
+          if(result['status-code']==204) { //if email hasnt been used -> create new user
             user.addUserApiCall(this.form).then(()=>{
               this.validEmail = true
               this.submitStatus = 'OK'
             })
             this.submitStatus = 'PENDING'
           }
-          else { //if email exists in dtb
+
+          else if(result['status-code']==200) { //if email exists in dtb
             this.validEmail = false
             this.submitStatus = 'ERROR'
+          }
+
+          else if(result['status-code']==500) {
+            this.$bvModal.show('service-error-modal')
+            this.submitStatus = ''
           }
         })
       } else {

@@ -49,6 +49,14 @@
       </div>
       </b-form>
     </b-card>
+
+    <b-modal id="service-error-modal" title="Server Error">
+        <div class="d-block text-center">
+            <h5>Some error happened...</h5>
+            <h1>🛠️</h1>
+            <h5>Please try again later</h5>
+        </div>
+    </b-modal>
   </div>
 </template>
 
@@ -73,20 +81,27 @@ export default {
       evt.preventDefault()
       //sign in api
       user.signinApiCall(this.form.email, this.form.password).then((result)=>{
-          if(result) { //if sign in succeeded
+        if(result['status-code']==200) {
+          if(result['response-data']['user']) { //if sign in succeeded
             this.submitStatus = 'OK'
             //start session
             this.$session.start()
-            this.$session.set('user', result)
+            this.$session.set('user', result['response-data']['user'])
             
             //routing to homepage
             this.$emit("login-status-change")
             this.$router.push('/')
-          } else { //if sign in failed
+          }
+          else { //if sign in failed
             this.submitStatus = 'ERROR'
           }
-        })
-        this.submitStatus = 'PENDING'
+        }
+        else if(result['status-code']==500) {
+          this.$bvModal.show('service-error-modal')
+          this.submitStatus = ''
+        }
+      })
+      this.submitStatus = 'PENDING'
     },
     
     onReset(evt) {

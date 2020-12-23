@@ -1,7 +1,8 @@
 import {miband_db_api_host as miband_db_host, miband_db_api_port as miband_db_port} from './ApiConfig.js'
 
 export async function pairNewBandDtbApiCall(uid, miband) {
-    const bodydata = {}
+    var result = {}
+    var bodydata = {}
     for (var key in miband) {
       bodydata[key] = miband[key]
     }
@@ -14,162 +15,197 @@ export async function pairNewBandDtbApiCall(uid, miband) {
             ),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = await response.json()
-        if(result['add-band-result']=='succeeded') {
-          return result['band-info']
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        else return false
-    } catch (error) {
-        console.error(error)
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
-export async function pairAvailableBandDtbApiCall(uid, miband) {
-    const band_id = miband.id
-    const bodydata = {}
+export async function pairAvailableBandDtbApiCall(uid, miband, bid) {
+    var result = {}
+    var bodydata = {}
     for (var key in miband) {
       bodydata[key] = miband[key]
     }
     bodydata['user_id'] = uid
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${band_id}/update-new-user`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/update-new-user`, {
         method: 'PUT',
         body: JSON.stringify(
             bodydata
             ),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = await response.json()
-        if(result['add-band-result']=='succeeded') {
-          return result['band-info']
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        else return false
-    } catch (error) {
-        console.error(error)
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function getBandBySerial(serial) {
-  const params = 'serial='+serial
-  try {
-    const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/find-by-serial?${params}`)
-    const result = await response.json()
-    if(result['get-band-result']=='succeeded'){
-      return result['band-info']
+    var result = {}
+    const params = 'serial='+serial
+    try {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/find-by-serial?${params}`)
+        result['status-code'] = response.status
+            if(result['status-code']==200) {
+                result['response-data'] = await response.json()
+            }
     }
-    else return false
-  }
-  catch (error){
-    console.log(error)
-  }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 
 export async function getUserBandInfo(uid) {
+    var result = {}
     const params = '?user_id='+uid
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/find-by-userid${params}`)
-        const result = await response.json()
-        if(result['get-band-result']=='succeeded'){
-        return result['band-info']
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return false
-    } catch (error) {
-        // do something with `error`
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function getUserLogByTimeDbApiCall(uid, start, end) {
+    var result = {}
     const params = 'start='+start + '&end='+end
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/users/${uid}/logs/get-by-time?${params}`)
         
-        const result = await response.json()
-        if(result['get-logs-result']==='succeeded')
-            return result['logs']
-        return false
-    } catch (error) {
-        // do something with `error`
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
+        }
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function getLastFetchingDataTimestampDbApiCall(bid) {
+    var result = {}
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/last-fetch-time`)
-        const result = await response.json()
-        if(result['get-timestamp-result']=='succeeded'){
-            return result['last-fetch-timestamp']
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        else return false
-    } catch (error){
-        console.log(error)
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function setLastFetchingDataTimestampDbApiCall(bid, last){
+    var result = {}
     try{
-        const response = await fetch(`http://${this.miband_db_host}:${this.miband_db_port}/bands/${bid}/last-fetch-time`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/last-fetch-time`, {
         method: 'POST',
         body: JSON.stringify({
             'last': last
             }),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = response.json()
-        if(result['set-timestamp-result']=='succeeded') {
-            return true
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return false
     }
     catch (error) {
         console.log(error)
+        result['status-code'] = 500
     }
+
+    return result
 }
 
 
 export async function addLogsDbApiCall(uid, bid, logs) {
+    var result = {}
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/${uid}/logs`, {
         method: 'POST',
         body: JSON.stringify(logs),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = await response.json()
-        if(result['add-logs-result']=='succeeded'){
-            return true
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        else return false
-    } catch (error) {
-        console.error(error)
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function unpairBandDbApiCall(bid) {
+    var result = {}
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/unpair`)
-        const result = await response.json()
-
-        // do something with `data`
-        if(result['unpair-band-result']=="succeeded")
-            return true
-        else return false
-    } catch (error) {
-        // do something with `error`
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
+        }
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function deleteUserLogsApiCall(uid) {
+    var result = {}
     try {
         const response = await fetch(`http://${miband_db_host}:${miband_db_port}/users/${uid}/logs`, {
             method: 'DELETE'
         })
-        const result = await response.json()
-        if(result['delete-result']=='succeeded') {
-            return true
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return false
     }
     catch (error) {
         console.log(error)
+        result['status-code'] = 500
     }
+
+    return result
 }

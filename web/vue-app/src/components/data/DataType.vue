@@ -1,6 +1,10 @@
 <template>
     <div>
         <div>
+            <div class="d-flex d-flex justify-content-end mb-2">
+                <b-button @click="getAndUpdateNewData" variant="light">🔄</b-button>
+            </div>
+
             <b-form inline class="d-flex justify-content-between">
                 <b-form-datepicker id="example-datepicker" v-model="datevalue" class="mb-2 w-50"></b-form-datepicker>
                 
@@ -84,6 +88,15 @@ export default {
     },
 
     methods: {
+        getAndUpdateNewData() {
+            this.addDataFromLastTimestampDb().then(()=>{
+                this.getDatabyDateDb(this.datevalue)
+            })
+
+            this.getDatabyDateDb(this.datevalue)
+            this.generateDataSet()
+        },
+
         generateDataSet() {
             var logs = this.activitydata
             var hourData = {}
@@ -172,31 +185,64 @@ export default {
             const user_id = this.$session.get('user').id
             
             miband_db.getUserLogByTimeDbApiCall(user_id, startstr, endstr).then((result)=>{
-                this.activitydata  = result
-                this.getDataStatus = "OK"
+                if(result['status-code']==200) {
+                    this.activitydata  = result['response-data']['logs']
+                    this.getDataStatus = "OK"
+                }
+                else if(result['status-code']==500) {
+                    this.$emit('service-error')
+                    this.getDataStatus = ''
+                }
+
             })
             this.getDataStatus = "PENDING"
 
         },
 
-        
-        async getDataFromLastTimestampMiband(){
+        async getLastFetchingDataTimestampDb() {
             const band_id = this.$session.get('miband').id
-            const lastTsStr = await miband_db.getLastFetchingDataTimestampDbApiCall(band_id)
-            
-            var lastTs
-            if(lastTsStr==''){
-                lastTs = new Date()
+            const result = await miband_db.getLastFetchingDataTimestampDbApiCall(band_id)
+
+            var lastTs = null
+            if(result['status-code']==200) {
+                var lastTsStr = result['response-data']['last-fetch-timestamp']
+                if(lastTsStr) {
+                    if(lastTsStr==''){
+                        lastTs = new Date()
+                    }
+                    else {
+                        lastTs = new Date(lastTsStr)           
+                    }
+                }
             }
-            else {
-                lastTs = new Date(lastTsStr)           
+            else if(result['status-code']==500) {
+                this.$emit('service-error')
             }
+
+            return lastTs
             
+            
+        },
+
+        async getDataFromLastTimestampMiband(){
             //get data from last ts to now
-            var start, end
-            start = this.generateApiTimeStr(lastTs)
-            end = this.generateApiTimeStr(new Date())
-            const logs = await miband_conn.getDataMibandFrom(start, end)
+            var lastTs = await this.getLastFetchingDataTimestampDb()
+            var logs = null
+
+            if(lastTs) {
+                var start, end
+                start = this.generateApiTimeStr(lastTs)
+                end = this.generateApiTimeStr(new Date())
+                
+                const result = await miband_conn.getDataMibandFrom(start, end)
+                if(result['status-code']==200) {
+                    logs = result['response-data']['logs']
+                }
+                else if(result['status-code']==500) {
+                    this.$emit('service-error')
+                }
+            }
+            
             return logs
         },
 
@@ -213,12 +259,14 @@ export default {
                     this.convertLogsToUTC(logs)
                     
                     var add_result = await miband_db.addLogsDbApiCall(user_id, band_id, logs)
-                    if(add_result) {
-
+                    if(add_result['status-code']==200) {
                         const timestamp = this.generateTimestampFromApiStr(laststr)
                         const utcStr = this.generateApiUTCTimeStr(timestamp)
 
                         miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
+                    }
+                    else if(add_result['status-code']==500) {
+                        this.$emit('service-error')
                     }
                 }
             }

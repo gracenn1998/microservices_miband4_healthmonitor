@@ -34,10 +34,8 @@ def add_band():
             'band-info': band.serialize()
         })
     except Exception as e:
-        response = jsonify({
-            'add-band-result': 'failed'
-        })
         print(e)
+        return '', 500
 
     return response
 
@@ -64,11 +62,10 @@ def update_band_user(id):
             'add-band-result': 'succeeded',
             'band-info': band.serialize()
         })
+    
     except Exception as e:
         print(e)
-        response = jsonify({
-            'add-band-result': 'failed',
-          })
+        return '', 500
 
     return response
 
@@ -81,11 +78,10 @@ def unpair_band(id):
         response = jsonify({
             'unpair-band-result': 'succeeded',
         })
+    
     except Exception as e:
         print(e)
-        response = jsonify({
-            'unpair-band-result': 'failed',
-          })
+        return '', 500
 
     return response
 
@@ -105,11 +101,10 @@ def get_band_by_id(id):
             'get-band-result': 'succeeded',
             'band-info': band.serialize()
         }
+    
     except Exception as e:
         print(e)
-        response = {
-            'get-band-result': 'failed'
-        }
+        return '', 500
 
     return response
 
@@ -118,15 +113,16 @@ def get_band_by_user():
     uid = request.args.get('user_id')
     try:
         band=Miband4.query.filter_by(user_id=uid).first()
-        response = jsonify({
-            'get-band-result': 'succeeded',
-            'band-info': band.serialize()
-        })
+        if(band):
+            response = jsonify({
+                'get-band-result': 'succeeded',
+                'band-info': band.serialize()
+            })
+        else: return '',204
+    
     except Exception as e:
-        response = jsonify({
-            'get-band-result': 'failed',
-        })
-        print(str(e))
+        print(e)
+        return '', 500
 
     return response
 
@@ -135,15 +131,16 @@ def get_band_by_serial():
     serial = request.args.get('serial')
     try:
         band=Miband4.query.filter_by(serial=serial).first()
-        response = jsonify({
-            'get-band-result': 'succeeded',
-            'band-info': band.serialize()
-        })
+        if(band):
+            response = jsonify({
+                'get-band-result': 'succeeded',
+                'band-info': band.serialize()
+            })
+        else: return '',204
+    
     except Exception as e:
-        response = jsonify({
-            'get-band-result': 'failed',
-        })
-        print(str(e))
+        print(e)
+        return '', 500
 
     return response
 
@@ -172,11 +169,10 @@ def add_logs_of(uid, bid):
             response = jsonify({
                 'add-logs-result' : 'succeeded',
             })
+        
         except Exception as e:
             print(e)
-            response = jsonify({
-                'add-logs-result' : 'failed',
-            })
+            return '', 500
     
     db.session.commit()
     return response
@@ -201,9 +197,10 @@ def get_log_of_user(uid):
             'logs': serializedLogs,
             'get-logs-result': 'succeeded'
         })
+    
     except Exception as e:
-        response = jsonify({'get-logs-result': 'failed'})
         print(e)
+        return '', 500
     
     return response
     
@@ -225,8 +222,10 @@ def get_log_by_timestamp_of(uid):
             'logs': serializedLogs,
             'get-logs-result': 'succeeded'
         })
+    
     except Exception as e:
-        response = jsonify({'get-logs-result': 'failed'})
+        print(e)
+        return '', 500
     
     return response
 
@@ -241,9 +240,10 @@ def get_last_fetch_time_of(id):
             'get-timestamp-result': 'succeeded',
             'last-fetch-timestamp': last_ts
         })
+    
     except Exception as e:
-        response = jsonify({'get-timestamp-result': 'failed'})
         print(e)
+        return '', 500
     
     return response
 
@@ -258,9 +258,10 @@ def set_last_time_of(id):
         response = jsonify({
             'set-timestamp-result': 'succeeded'
         })
+    
     except Exception as e:
-        response = jsonify({'get-timestamp-result': 'failed'})
         print(e)
+        return '', 500
     
     return response
 
@@ -289,10 +290,9 @@ def delete_logs_of(userid):
         response = jsonify({
             'delete-result': 'succeeded'
         })
+    
     except Exception as e:
-        response = jsonify({
-            'delete-result': 'succeeded'
-        })
         print(e)
+        return '', 500
     
     return response

@@ -14,8 +14,7 @@
         <b-alert variant="info" show>Adding to database</b-alert>
       </div>
       <div v-if="pairingStatus === 'UNAVAILABLE'">
-        <b-alert variant="warning" show>Pair failed. This band is in using condition.<br> 
-          If you want to pair, please hard reset the band.</b-alert>
+        <b-alert variant="warning" show>Pair failed. This band is paired by another account.</b-alert>
       </div>
       
       <b-skeleton-wrapper :loading="pairingStatus === 'PENDING' || pairingStatus === 'DTB'">
@@ -105,62 +104,89 @@ export default {
     }
   },
   methods: {
-    addBand(mac_add, auth_key) {
+    async addBand(mac_add, auth_key) {
       //reset error msg
       this.pairingStatus = null
 
-      const user_id = this.$session.get('user').id 
+      const user_id = this.$session.get('user').id
 
       if(this.macaddState && this.authkeyState) {
-        miband_conn.connectApiCall(mac_add, auth_key).then((band)=>{
-          if(band) { //connect succeeded -> valid band info -> save dtb
-            //assign band info to miband ref
-            for(var key in band) {
-              this.miband[key] = band[key]
+        this.pairingStatus = 'PENDING'
+        var result = await miband_conn.connectApiCall(mac_add, auth_key)
+        
+        if(result['status-code']==200) {
+          var connectBand = result['response-data']['band-info']
+          if(connectBand) {
+            for(var key in connectBand) {
+              this.miband[key] = connectBand[key]
+            }
+            var result2 =  await miband_db.getBandBySerial(connectBand['serial'])
+
+            if(result2['status-code']==204) { //no band with given serial found
+              
+              
+              this.pairingStatus = 'DTB'
+
+
+              var result3 = await miband_db.pairNewBandDtbApiCall(user_id, this.miband)
+              if(result3['status-code']==200) {
+                this.$session.set('miband', result3['response-data']['band-info'])
+                //finished
+                this.pairingStatus = 'OK'
+                this.$emit('update-list-display')
+              }
+
+              else if(result3['status-code']==500) {
+                miband_conn.disconnectApiCall()
+                this.pairingStatus = ''
+                this.$emit('service-error')
+              }
             }
 
-            //pair new band that is not saved in dtb yet
-            miband_db.getBandBySerial(band['serial']).then((band)=>{
-              if(!band) { //no band with same serial
-                miband_db.pairNewBandDtbApiCall(user_id, this.miband).then((result)=>{
-                  if(result) {
-                    this.$session.set('miband', result)
-                    //finished
-                    this.pairingStatus = 'OK'
-                    this.$emit('update-list-display')
-                  }
-                })
-                this.pairingStatus = 'DTB'
+            else if(result2['status-code']==200) { //band with given serial found
+              var dbBand = result2['response-data']['band-info']
+
+              if(dbBand.user_id) { //uid exist -> band is pair by that uid -> unable to pair
+                this.pairingStatus = 'UNAVAILABLE'
               }
-              else { //this band has been used & added into dtb before
-                if(band.user_id) { //this band is currently paired by an user
-                  this.pairingStatus = 'UNAVAILABLE'
+
+              else { //this band is currently free
+                this.pairingStatus = 'DTB'
+                
+                var result4 = await miband_db.pairAvailableBandDtbApiCall(user_id, this.miband, dbBand.id)
+                if(result4['status-code']==200) {
+                  this.$session.set('miband', result4['response-data']['band-info'])
+                  //finished
+                  this.pairingStatus = 'OK'
+                  this.$emit('update-list-display')
                 }
-                else { //this band is currently free
-                  miband_db.pairAvailableBandDtbApiCall(user_id, band).then((result)=>{
-                    if(result) {
-                      this.$session.set('miband', result)
-                      //finished
-                      this.pairingStatus = 'OK'
-                      this.$emit('update-list-display')
-                    }
-                  })
-                  this.pairingStatus = 'DTB'
+                else if(result4['status-code']==500) {
+                  miband_conn.disconnectApiCall()
+                  this.pairingStatus = ''
+                  this.$emit('service-error')
                 }
                 
               }
-            })
-          }
-          else {
+            }
+
+            else if(result['status-code']==500) {
+              miband_conn.disconnectApiCall()
+              this.pairingStatus = ''
+              this.$emit('service-error')
+            }
+
+          } else { //pair failed
             this.pairingStatus = 'ERROR'
           }
-      
-        })
+          
+        }
+        else if(result['status-code']==500) {
+          this.$emit('service-error')
+        }
         
-        this.pairingStatus = 'PENDING'
       }
       
-    }
+    },
   }
 }
 </script>

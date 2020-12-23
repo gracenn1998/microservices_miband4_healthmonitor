@@ -50,7 +50,10 @@
                 <b-button variant="outline-primary" class="w-100 mb-1"
                     @click="enterChangePwMode"
                 >Change password</b-button>
-                <ChangePasswordForm v-if="changePwMode==true" @exit-change-pw-mode="exitChangePwMode"/>
+                <ChangePasswordForm v-if="changePwMode==true" 
+                    @exit-change-pw-mode="exitChangePwMode"
+                    @service-error="$bvModal.show('service-error-modal')"    
+                />
                 <b-button variant="outline-primary" class="w-100" v-b-modal.confirm-delete-modal >Delete account</b-button>
                 
             </b-card>
@@ -61,11 +64,21 @@
                 </div>
                 <div class="d-flex justify-content-end">
                     <b-button class="mt-3 mr-3"  @click="$bvModal.hide('confirm-delete-modal')">Cancel</b-button>
-                    <b-button class="mt-3 mr-4" variant="danger" @click="deleteAndCloseModal()">Delete</b-button>
+                    <b-button class="mt-3 mr-4" variant="danger" @click="deleteUser()">Delete</b-button>
                 </div>
             </b-modal>
+
+            
             </b-skeleton-wrapper>
         </b-card>
+
+        <b-modal id="service-error-modal" title="Server Error">
+            <div class="d-block text-center">
+                <h5>Some error happened...</h5>
+                <h1>🛠️</h1>
+                <h5>Please try again later</h5>
+            </div>
+        </b-modal>
         
     </div>
 </template>
@@ -85,7 +98,6 @@ export default {
         ChangePasswordForm
     },
     created() {
-        // console.log(this.user)
         this.generateAvtStr()
         
     },
@@ -96,6 +108,7 @@ export default {
             updateNameMode: false,
             changePwMode: false,
             deleteStatus: '',
+            serviceStatus: ''
         }
     },
     methods: {
@@ -114,7 +127,7 @@ export default {
         },
 
         generateAvtStr() {
-            if(this.user.fullname!=null) {
+            if(this.user.fullname!=null && this.$session.get('user')) {
                 var str = String(this.$session.get('user').fullname)
                 var seperateName = str.split(" ")
                 if(seperateName.length==1){
@@ -132,20 +145,29 @@ export default {
         updateName() {
             const uid = this.$session.get('user').id
             // this.updateNameApiCall(this.user.email, this.user.fullname)
-            user.updateNameApiCall(uid, this.user.fullname).then((user)=>{
-                this.$session.set('user', user)
-                this.generateAvtStr()
-                this.exitUpdateNameMode()
+            user.updateNameApiCall(uid, this.user.fullname).then((result)=>{
+                if(result['status-code']==200){
+                    var user_data = result['response-data']
+                    this.$session.set('user', user_data)
+                    this.generateAvtStr()
+                    this.exitUpdateNameMode()
+                }
+                else if(result['status-code']==500) {
+                    this.$bvModal.show('service-error-modal')
+                    this.updateNameMode = false
+                }
                 // this.$forceUpdate
             })
         },
 
 
-        async deleteAndCloseModal() {
+        async deleteUser() {
             const user_id = this.$session.get('user').id
-            const band_id = this.$session.get('miband').id
+            var band_id
+            if(this.$session.get('miband'))
+                band_id = this.$session.get('miband').id
 
-            this.$bvModal.hide('confirm-remove-modal')
+            // this.$bvModal.hide('confirm-remove-modal')
 
             this.deleteStatus = 'PENDING'
             
@@ -153,19 +175,22 @@ export default {
             var unpairBandResult = true
             var deleteUserResult
             if(deleteLogsResult) { //if succeeded
-                console.log(this.$session.get('miband'))
-                if(this.$session.get('miband')!=undefined) { //if pairing band exist
+                if(band_id) { //if pairing band exist
                     await miband_conn.disconnectApiCall()
                     unpairBandResult = await miband_db.unpairBandDbApiCall(band_id)
                 }
             }
-            if(unpairBandResult) {
+            if(unpairBandResult['status-code']==200) {
                 deleteUserResult = await user.deleteUserApiCall(user_id)
-                if(deleteUserResult) {
+                if(deleteUserResult['status-code']==200) {
                     this.deleteStatus = 'OK'
                     this.$session.destroy()
                     this.$emit('login-status-change')
                     this.$router.push('/')
+                }
+                else if(deleteUserResult['status-code']==500) {
+                    this.$bvModal.show('service-error-modal')
+                    this.deleteStatus = ''
                 }
             }
         },

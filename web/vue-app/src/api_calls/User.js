@@ -1,6 +1,7 @@
 import {user_db_api_host as user_db_host, user_db_api_port as user_db_port} from './ApiConfig.js'
 
 export async function signinApiCall(email, password) {
+    var result = {}
     try {
         const response = await fetch(`http://${user_db_host}:${user_db_port}/users/login`, {
         method: 'POST',
@@ -10,44 +11,57 @@ export async function signinApiCall(email, password) {
             }),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = await response.json()
-        if (result['login-result']=='succeeded') { //sign in successfully
-        return result['user']
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        // if signin failed
-        return false
     } catch (error) {
         console.error(error)
+        result['status-code']=500
     }
+
+    return result
 }
 
-export async function validateEmailApiCall(email) {
+export async function getUserByEmailApiCall(email) {
+    var result = {}
     const params = 'email='+email
     try {
         const response = await fetch(`http://${user_db_host}:${user_db_port}/users/find-by-email?${params}`)
-        const result = await response.json()
-        if (result.user!=null) {
-        return false
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return true
+        
     } catch (error) {
         console.error(error)
+        result['status-code'] = 500
     }
+
+    return result
 }
 
 export async function addUserApiCall(user) {
+    var result = {}
     try {
-        await fetch(`http://${user_db_host}:${user_db_port}/users`, {
+        var response = await fetch(`http://${user_db_host}:${user_db_port}/users`, {
         method: 'POST',
         body: JSON.stringify(user),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
+
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
+        }
     } catch (error) {
         console.error(error)
+        result['status-code'] = 500
     }
 }
 
 export async function updateNameApiCall(uid, newName) {
+    var result = {}
     try {
         const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}/fullname`, {
         method: 'PUT',
@@ -56,30 +70,40 @@ export async function updateNameApiCall(uid, newName) {
             }),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const user = await response.json()
-        return user
-    } catch (error) {
-        console.error(error)
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
+        }
     }
+    catch (error) {
+        console.error(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }
 
 export async function deleteUserApiCall(uid) {
+    var result = {}
     try {
         const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}`, {
             method: 'DELETE'
         })
-        const result = await response.json()
-        if(result['delete-result']=='succeeded') {
-            return true
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return false
     }
     catch (error) {
         console.log(error)
+        result['status-code'] = 500
     }
+
+    return result
 }
 
 export async function changePasswordApiCall(uid, currentPassword, newPassword) {
+    var result = {}
     try {
         const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}/change-password`, {
         method: 'POST',
@@ -89,12 +113,16 @@ export async function changePasswordApiCall(uid, currentPassword, newPassword) {
             }),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
         })
-        const result = await response.json()
-        if (result['change-pw-result']=='succeeded') { //sign in successfully
-            return true
+
+        result['status-code'] = response.status
+        if(result['status-code']==200) {
+            result['response-data'] = await response.json()
         }
-        return false
-    } catch (error) {
-        console.error(error)
     }
+    catch (error) {
+        console.log(error)
+        result['status-code'] = 500
+    }
+
+    return result
 }

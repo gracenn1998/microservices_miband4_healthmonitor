@@ -30,16 +30,27 @@ def add_user():
     return jsonify(new_user.serialize())
 
 
+@app.route('/users/<id>')
+def getuser(id):
+    try:
+        user = User.query.filter_by(id=id).first()
+        if(user):
+            return jsonify(user.serialize())
+        return '', 204 #no user found
+    except Exception as e:
+        return str(e)
+
 @app.route('/users/find-by-email')
 def getuserbyemail():
     email = request.args.get('email')
     try:
         user = User.query.filter_by(email=email).first()
         if(user):
-            return jsonify({'user': user.serialize()})
-        return jsonify({'user':None})
+            return jsonify(user.serialize())
+        return '', 204 #no user found
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return '', 500
 
 
 @app.route('/users/<id>/fullname', methods=['PUT'])
@@ -52,7 +63,8 @@ def updateuser(id):
         db.session.commit()
         return jsonify(user.serialize())
     except Exception as e:
-        return str(e)
+        print(str(e))
+        return '', 500
 
 
 def validate_pw(user, pw):
@@ -73,7 +85,6 @@ def validate_pw(user, pw):
         return False 
     except Exception as e:
         return False
-        print(str(e))
 
 @app.route('/users/<id>/validate-password', methods=['POST'])
 def check_password(id):
@@ -88,15 +99,13 @@ def check_password(id):
 
         if(valid):
             response = jsonify({
-                'validate-result': 'correct'
+                'validate-result': True
             })
         else: response = jsonify({
-            'validate-result': 'incorrect'
+            'validate-result': False
         })
     except Exception as e:
-        response = jsonify({
-            'validate-result': 'error'
-        })
+        return '', 500
         print(e)
     
     return response
@@ -129,18 +138,15 @@ def change_password(id):
                 db.session.commit()
                 
                 response = jsonify({
-                    'change-pw-result' : 'succeeded'
+                    'change-password-result' : 'succeeded'
                 })
-            
-        else: response = jsonify({ #password unmatched
-            'change-pw-result' : 'failed'
-        })
+            else: response = jsonify({ #current pw unmatched
+                'change-password-result': 'failed'
+            })
         
     except Exception as e:
-        response = jsonify({
-            'change-pw-result' : 'failed'
-        })
         print(str(e))
+        return '', 500
     
     return response
 
@@ -169,10 +175,8 @@ def login():
             })
         
     except Exception as e:
-        response = jsonify({ #if password unmatched
-            'login-result': 'failed'
-        })
         print(str(e))
+        return '', 500
     
     return response
 
@@ -189,10 +193,8 @@ def delete_user(id):
             'delete-result': 'succeeded'
         })
     except Exception as e:
-        response = jsonify({
-            'delete-result': 'succeeded'
-        })
         print(e)
+        return '', 500
     
     return response
 

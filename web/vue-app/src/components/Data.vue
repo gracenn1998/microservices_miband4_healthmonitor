@@ -10,16 +10,26 @@
           </div>
           <b-tabs card>
             <b-tab title="General Information" active lazy> 
-              <GeneralData :key='gdkey'/>
+              <GeneralData :key='gdkey' 
+              @service-error="$bvModal.show('service-error-modal')"
+              />
             </b-tab>
             <b-tab title="Step Counts" lazy>
-              <DataType :type="'steps'" />
+              <DataType :type="'steps'" @service-error="$bvModal.show('service-error-modal')" />
             </b-tab>
             <b-tab title="Heart Rate" lazy>
-              <DataType :type="'hr'" />
+              <DataType :type="'hr'" @service-error="$bvModal.show('service-error-modal')"/>
             </b-tab>
         </b-tabs>
       </b-card>
+
+      <b-modal id="service-error-modal" title="Server Error">
+          <div class="d-block text-center">
+              <h5>Some error happened...</h5>
+              <h1>🛠️</h1>
+              <h5>Please try again later</h5>
+          </div>
+      </b-modal>
     </div>
 </template>
 
@@ -61,12 +71,19 @@ export default {
       var miband = this.$session.get('miband')
       miband_conn.disconnectApiCall().then(
         miband_conn.connectApiCall(miband.mac_address, miband.auth_key).then((result)=>{
-          if(result) {
-            this.connectStatus='OK'
-            this.gdkey = !this.gdkey
+          if(result['status-code']==200) {
+            var band = result['response-data']['band-info']
+            if(band) {
+              this.connectStatus='OK'
+              this.gdkey = !this.gdkey
+            }
+            else {
+              this.connectStatus='ERROR'
+            }
           }
-          else {
-            this.connectStatus='ERROR'
+          else if(result['status-code']==500) {
+              this.$bvModal.show('service-error-modal')
+              this.connectStatus = ''
           }
         })
       )
