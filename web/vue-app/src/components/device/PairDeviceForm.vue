@@ -107,6 +107,7 @@ export default {
     async addBand(mac_add, auth_key) {
       //reset error msg
       this.pairingStatus = null
+      miband_conn.disconnectApiCall()
 
       const user_id = this.$session.get('user').id
 
@@ -139,7 +140,7 @@ export default {
               else if(result3['status-code']==500) {
                 miband_conn.disconnectApiCall()
                 this.pairingStatus = ''
-                this.$emit('service-error')
+                this.$bvModal.show('service-error-modal')
               }
             }
 
@@ -163,16 +164,16 @@ export default {
                 else if(result4['status-code']==500) {
                   miband_conn.disconnectApiCall()
                   this.pairingStatus = ''
-                  this.$emit('service-error')
+                  this.$bvModal.show('service-error-modal')
                 }
                 
               }
             }
 
-            else if(result['status-code']==500) {
+            else if(result2['status-code']==500) {
               miband_conn.disconnectApiCall()
               this.pairingStatus = ''
-              this.$emit('service-error')
+              this.$bvModal.show('service-error-modal')
             }
 
           } else { //pair failed
@@ -181,7 +182,9 @@ export default {
           
         }
         else if(result['status-code']==500) {
-          this.$emit('service-error')
+          miband_conn.disconnectApiCall()
+          this.pairingStatus = ''
+          this.$bvModal.show('service-error-modal')
         }
         
       }

@@ -15,10 +15,10 @@
               />
             </b-tab>
             <b-tab title="Step Counts" lazy>
-              <DataType :type="'steps'" @service-error="$bvModal.show('service-error-modal')" />
+              <DataType :type="'steps'" />
             </b-tab>
             <b-tab title="Heart Rate" lazy>
-              <DataType :type="'hr'" @service-error="$bvModal.show('service-error-modal')"/>
+              <DataType :type="'hr'" />
             </b-tab>
         </b-tabs>
       </b-card>
@@ -57,10 +57,13 @@ export default {
     if(this.$session.get('miband')==undefined) {
       const userid = this.$session.get('user').id
 
-      miband_db.getUserBandInfo(userid).then((bandinfo)=>{
-        if(bandinfo){
-          this.$session.set('miband', bandinfo)
-          this.$emit('update-list-display')
+      miband_db.getUserBandInfo(userid).then((result)=>{
+        if(result['status-code']==200) {
+            this.$session.set('miband', result['response-data']['band-info'])
+            this.$emit('update-list-display')
+        }
+        else if(result['status-code']==500) {
+            this.$bvModal.show('service-error-modal')
         }
       })
     }

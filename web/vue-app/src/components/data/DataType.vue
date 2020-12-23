@@ -190,7 +190,7 @@ export default {
                     this.getDataStatus = "OK"
                 }
                 else if(result['status-code']==500) {
-                    this.$emit('service-error')
+                    this.$bvModal.show('service-error-modal')
                     this.getDataStatus = ''
                 }
 

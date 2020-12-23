@@ -8,7 +8,6 @@
             <pair-device-form v-if="addBandMode" 
                 @exit-add-band-mode="exitAddBandMode"
                 @update-list-display="updateListDisplay"
-                @service-error="$bvModal.show('service-error-modal')"
             />
             <device-list class="mt-1" :key="listkey"
                 @unpair-band="removeBand"
@@ -16,13 +15,6 @@
             />
         </b-card>
 
-        <b-modal id="service-error-modal" title="Server Error">
-            <div class="d-block text-center">
-                <h5>Some error happened...</h5>
-                <h1>🛠️</h1>
-                <h5>Please try again later</h5>
-            </div>
-        </b-modal>
     </div>
 </template>
 
@@ -47,6 +39,9 @@ export default {
                 if(result['status-code']==200) {
                     this.$session.set('miband', result['response-data']['band-info'])
                     this.$emit('update-list-display')
+                }
+                else if(result['status-code']==500) {
+                    this.$bvModal.show('service-error-modal')
                 }
             })
         }
