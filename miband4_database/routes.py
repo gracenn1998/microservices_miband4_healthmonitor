@@ -2,7 +2,7 @@ from miband4_database import app, db
 from flask import request, jsonify
 import datetime
 
-from miband4_database.models import Miband4, ActivityRecord
+from database_construct.models import Miband4, ActivityRecord
 
 @app.route("/")
 def hello():

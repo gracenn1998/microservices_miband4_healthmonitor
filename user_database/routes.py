@@ -1,6 +1,6 @@
 from user_database import app, db
 from flask import request, jsonify
-from user_database.models import User
+from database_construct.models import User
 import datetime
 import os, hashlib
 

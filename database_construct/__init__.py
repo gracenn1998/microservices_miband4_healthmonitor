@@ -18,10 +18,7 @@ POSTGRES = {
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://%(user)s:%(pw)s@%(host)s:%(port)s/%(db)s' % POSTGRES
 db = SQLAlchemy(app)
 
-migrate = Migrate(app, db, directory='./miband4_database/migrations')
+migrate = Migrate(app, db, directory='./database_construct/migrations')
 manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
-manager.add_command('runserver', Server(host='0.0.0.0', port=5002))
-
-from miband4_database import routes
