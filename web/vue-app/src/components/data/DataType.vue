@@ -260,10 +260,10 @@ export default {
                     
                     var add_result = await miband_db.addLogsDbApiCall(user_id, band_id, logs)
                     if(add_result['status-code']==200) {
-                        const timestamp = this.generateTimestampFromApiStr(laststr)
-                        const utcStr = this.generateApiUTCTimeStr(timestamp)
+                        // const timestamp = this.generateTimestampFromApiStr(laststr)
+                        // const utcStr = this.generateApiUTCTimeStr(timestamp)
 
-                        miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
+                        // miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
                     }
                     else if(add_result['status-code']==500) {
                         this.$emit('service-error')

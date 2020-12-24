@@ -58,6 +58,7 @@ export async function addUserApiCall(user) {
         console.error(error)
         result['status-code'] = 500
     }
+    return result
 }
 
 export async function updateNameApiCall(uid, newName) {

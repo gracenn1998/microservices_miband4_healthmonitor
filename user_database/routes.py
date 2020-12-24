@@ -25,7 +25,8 @@ def add_user():
         db.session.add(new_user)
         db.session.commit()
     except Exception as e:
-        return str(e)
+        print(e)
+        return '', 500
 
     return jsonify(new_user.serialize())
 
@@ -187,7 +188,8 @@ def login():
 def delete_user(id):
     try:
         user = User.query.filter_by(id=id).first()
-        db.session.delete(user)
+        temp = db.session.merge(user)
+        db.session.delete(temp)
         db.session.commit()
         response = jsonify({
             'delete-result': 'succeeded'

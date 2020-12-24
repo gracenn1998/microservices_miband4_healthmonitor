@@ -134,9 +134,15 @@ export default {
         user.getUserByEmailApiCall(this.form.email).then((result)=>{ 
           //check if email is valid (used) or not
           if(result['status-code']==204) { //if email hasnt been used -> create new user
-            user.addUserApiCall(this.form).then(()=>{
-              this.validEmail = true
-              this.submitStatus = 'OK'
+            user.addUserApiCall(this.form).then((result2)=>{
+              if(result2['status-code']==200){
+                this.validEmail = true
+                this.submitStatus = 'OK'
+              }
+              else if(result2['status-code']==500) {
+                this.$bvModal.show('service-error-modal')
+                this.submitStatus = ''
+              }
             })
             this.submitStatus = 'PENDING'
           }

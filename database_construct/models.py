@@ -9,7 +9,7 @@ class User(db.Model):
     password_hashed = db.Column(db.LargeBinary, nullable=False)
     password_salt = db.Column(db.LargeBinary, nullable=False)
     fullname = db.Column(db.String(120))
-    activities_records = db.relationship('ActivityRecord', backref='user', cascade="all", lazy=True)
+    activities_records = db.relationship('ActivityRecord', backref='user', cascade="all, delete-orphan", lazy=True)
 
     def __repr__(self):
         return f"User('{self.id}')"
@@ -28,7 +28,7 @@ class Miband4(db.Model):
     __table_args__ = {'schema': 'miband_api'}
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('user_api.users.id'))
     serial = db.Column(db.String(12), unique=True)
     software_revision = db.Column(db.String(10))
     hardware_revision = db.Column(db.String(10))

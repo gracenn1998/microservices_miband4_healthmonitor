@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 POSTGRES = {
-    'user': 'postgres',
+    'user': 'miband_service',
     'pw': '123123',
     'db': 'health_monitor_system',
     'host': 'localhost',
@@ -21,7 +21,6 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db, directory='./miband4_database/migrations')
 manager = Manager(app)
 
-manager.add_command('db', MigrateCommand)
 manager.add_command('runserver', Server(host='0.0.0.0', port=5002))
 
 from miband4_database import routes
