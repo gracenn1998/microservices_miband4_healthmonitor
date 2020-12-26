@@ -253,7 +253,7 @@ export default {
 
             if(logs) {//if api called successfully
                 if(Object.entries(logs).length!=0){ //if data read != null
-                    var laststr = Object.keys(logs)[Object.keys(logs).length-1]
+                    // var laststr = Object.keys(logs)[Object.keys(logs).length-1]
                     
                     //save dtb in utc timestamp
                     this.convertLogsToUTC(logs)

@@ -9,6 +9,7 @@ class User(db.Model):
     password_hashed = db.Column(db.LargeBinary, nullable=False)
     password_salt = db.Column(db.LargeBinary, nullable=False)
     fullname = db.Column(db.String(120))
+    activities_records = db.relationship('Miband', backref='user', cascade="save-update, merge, refresh-expire, expunge", lazy=True)
     activities_records = db.relationship('ActivityRecord', backref='user', cascade="all, delete-orphan", lazy=True)
 
     def __repr__(self):
