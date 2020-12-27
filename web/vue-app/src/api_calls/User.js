@@ -3,7 +3,7 @@ import {user_db_api_host as user_db_host, user_db_api_port as user_db_port} from
 export async function signinApiCall(email, password) {
     var result = {}
     try {
-        const response = await fetch(`http://${user_db_host}:${user_db_port}/users/login`, {
+        const response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users/login`, {
         method: 'POST',
         body: JSON.stringify({
             'email': email,
@@ -27,7 +27,7 @@ export async function getUserByEmailApiCall(email) {
     var result = {}
     const params = 'email='+email
     try {
-        const response = await fetch(`http://${user_db_host}:${user_db_port}/users/find-by-email?${params}`)
+        const response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users/find-by-email?${params}`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -44,7 +44,7 @@ export async function getUserByEmailApiCall(email) {
 export async function addUserApiCall(user) {
     var result = {}
     try {
-        var response = await fetch(`http://${user_db_host}:${user_db_port}/users`, {
+        var response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users`, {
         method: 'POST',
         body: JSON.stringify(user),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
@@ -64,7 +64,7 @@ export async function addUserApiCall(user) {
 export async function updateNameApiCall(uid, newName) {
     var result = {}
     try {
-        const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}/fullname`, {
+        const response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users/${uid}/fullname`, {
         method: 'PUT',
         body: JSON.stringify({
             'fullname': newName,
@@ -87,7 +87,7 @@ export async function updateNameApiCall(uid, newName) {
 export async function deleteUserApiCall(uid) {
     var result = {}
     try {
-        const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}`, {
+        const response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users/${uid}`, {
             method: 'DELETE'
         })
         result['status-code'] = response.status
@@ -106,7 +106,7 @@ export async function deleteUserApiCall(uid) {
 export async function changePasswordApiCall(uid, currentPassword, newPassword) {
     var result = {}
     try {
-        const response = await fetch(`http://${user_db_host}:${user_db_port}/users/${uid}/change-password`, {
+        const response = await fetch(`http://${user_db_host}:${user_db_port}/v1/users/${uid}/change-password`, {
         method: 'POST',
         body: JSON.stringify({
             'cur_password': currentPassword,

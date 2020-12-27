@@ -40,7 +40,7 @@ def connect(mac_add, auth_key):
     # if succeeded
     return band
 
-@app.route("/band/connect", methods=['POST'])
+@app.route("/v1/band/connect", methods=['POST'])
 def get_mac_and_key():
     # global band
     #if already connected
@@ -76,7 +76,7 @@ def get_mac_and_key():
     return response 
  
 
-@app.route('/band/disconnect')
+@app.route('/v1/band/disconnect')
 def disconnect():
     try:
         if(globals.band):
@@ -97,7 +97,7 @@ def disconnect():
 
 
 
-@app.route('/band/info')
+@app.route('/v1/band/info')
 def get_band_info():
     try:
         if(globals.band):
@@ -126,7 +126,7 @@ def get_band_info():
     return response
     
 
-@app.route('/band/general')
+@app.route('/v1/band/general')
 def get_step_count():
     try:
         if(globals.band):    
@@ -162,7 +162,7 @@ def activity_log_callback(timestamp,c,i,s,h):
     print("{}: category: {}; intensity {}; steps {}; heart rate {};\n".format( timestamp.strftime('%d.%m - %H:%M'), c, i ,s ,h))
 
 
-@app.route('/band/activitydata')
+@app.route('/v1/band/activitydata')
 def get_activity_logs():
     try:
         if(globals.band):

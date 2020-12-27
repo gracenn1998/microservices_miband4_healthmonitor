@@ -5,7 +5,7 @@ import datetime
 import os, hashlib
 
 
-@app.route('/users', methods=['POST'])
+@app.route('/v1/users', methods=['POST'])
 def add_user():
     user = request.json
     email = user['email']
@@ -31,7 +31,7 @@ def add_user():
     return jsonify(new_user.serialize())
 
 
-@app.route('/users/<id>')
+@app.route('/v1/users/<id>')
 def getuser(id):
     try:
         user = User.query.filter_by(id=id).first()
@@ -41,7 +41,7 @@ def getuser(id):
     except Exception as e:
         return str(e)
 
-@app.route('/users/find-by-email')
+@app.route('/v1/users/find-by-email')
 def getuserbyemail():
     email = request.args.get('email')
     try:
@@ -54,7 +54,7 @@ def getuserbyemail():
         return '', 500
 
 
-@app.route('/users/<id>/fullname', methods=['PUT'])
+@app.route('/v1/users/<id>/fullname', methods=['PUT'])
 def updateuser(id):
     try:
         userdata = request.json
@@ -87,7 +87,7 @@ def validate_pw(user, pw):
     except Exception as e:
         return False
 
-@app.route('/users/<id>/validate-password', methods=['POST'])
+@app.route('/v1/users/<id>/validate-password', methods=['POST'])
 def check_password(id):
     try:
         user = User.query.filter_by(id=id).first()
@@ -111,7 +111,7 @@ def check_password(id):
     
     return response
 
-@app.route('/users/<id>/change-password', methods=['POST'])
+@app.route('/v1/users/<id>/change-password', methods=['POST'])
 def change_password(id):
     try:
         cur_pw = request.json['cur_password']
@@ -152,7 +152,7 @@ def change_password(id):
     return response
 
 
-@app.route('/users/login', methods=['POST'])
+@app.route('/v1/users/login', methods=['POST'])
 def login():
     entered_pw = request.json['password']
     email = request.json['email']
@@ -184,7 +184,7 @@ def login():
 
 
 
-@app.route('/users/<id>', methods=['DELETE'])
+@app.route('/v1/users/<id>', methods=['DELETE'])
 def delete_user(id):
     try:
         user = User.query.filter_by(id=id).first()

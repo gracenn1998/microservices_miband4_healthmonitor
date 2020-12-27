@@ -206,6 +206,7 @@ export default {
             var lastTs = null
             if(result['status-code']==200) {
                 var lastTsStr = result['response-data']['last-fetch-timestamp']
+                console.log(lastTsStr)
                 if(lastTsStr) {
                     if(lastTsStr==''){
                         lastTs = new Date()
@@ -227,6 +228,7 @@ export default {
         async getDataFromLastTimestampMiband(){
             //get data from last ts to now
             var lastTs = await this.getLastFetchingDataTimestampDb()
+            console.log(lastTs)
             var logs = null
 
             if(lastTs) {
@@ -253,17 +255,17 @@ export default {
 
             if(logs) {//if api called successfully
                 if(Object.entries(logs).length!=0){ //if data read != null
-                    // var laststr = Object.keys(logs)[Object.keys(logs).length-1]
+                    var laststr = Object.keys(logs)[Object.keys(logs).length-1]
                     
                     //save dtb in utc timestamp
                     this.convertLogsToUTC(logs)
                     
                     var add_result = await miband_db.addLogsDbApiCall(user_id, band_id, logs)
                     if(add_result['status-code']==200) {
-                        // const timestamp = this.generateTimestampFromApiStr(laststr)
-                        // const utcStr = this.generateApiUTCTimeStr(timestamp)
+                        const timestamp = this.generateTimestampFromApiStr(laststr)
+                        const utcStr = this.generateApiUTCTimeStr(timestamp)
 
-                        // miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
+                        miband_db.setLastFetchingDataTimestampDbApiCall(band_id, utcStr)
                     }
                     else if(add_result['status-code']==500) {
                         this.$emit('service-error')

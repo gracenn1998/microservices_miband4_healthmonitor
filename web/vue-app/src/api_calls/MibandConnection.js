@@ -3,7 +3,7 @@ import {miband_api_host as miband_host, miband_api_port as miband_port} from './
 export async function connectApiCall(mac_add, auth_key) {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_host}:${miband_port}/band/connect`, {
+        const response = await fetch(`http://${miband_host}:${miband_port}/v1/band/connect`, {
         method: 'POST',
         body: JSON.stringify({
             'mac_add': mac_add,
@@ -27,7 +27,7 @@ export async function connectApiCall(mac_add, auth_key) {
 export async function disconnectApiCall() {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_host}:${miband_port}/band/disconnect`)
+        const response = await fetch(`http://${miband_host}:${miband_port}/v1/band/disconnect`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -44,7 +44,7 @@ export async function getDataMibandFrom(start, end) {
     var result = {}
     const params = 'start='+start + '&end='+end
     try {
-        const response = await fetch(`http://${miband_host}:${miband_port}/band/activitydata?${params}`)
+        const response = await fetch(`http://${miband_host}:${miband_port}/v1/band/activitydata?${params}`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -60,7 +60,7 @@ export async function getDataMibandFrom(start, end) {
 export async function getGeneralDataApiCall() {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_host}:${miband_port}/band/general`)
+        const response = await fetch(`http://${miband_host}:${miband_port}/v1/band/general`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()

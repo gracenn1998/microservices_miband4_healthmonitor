@@ -8,7 +8,7 @@ export async function pairNewBandDtbApiCall(uid, miband) {
     }
     bodydata['user_id'] = uid
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands`, {
         method: 'POST',
         body: JSON.stringify(
             bodydata
@@ -36,7 +36,7 @@ export async function pairAvailableBandDtbApiCall(uid, miband, bid) {
     }
     bodydata['user_id'] = uid
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/update-new-user`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/${bid}/update-new-user`, {
         method: 'PUT',
         body: JSON.stringify(
             bodydata
@@ -60,7 +60,7 @@ export async function getBandBySerial(serial) {
     var result = {}
     const params = 'serial='+serial
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/find-by-serial?${params}`)
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/find-by-serial?${params}`)
         result['status-code'] = response.status
             if(result['status-code']==200) {
                 result['response-data'] = await response.json()
@@ -79,7 +79,7 @@ export async function getUserBandInfo(uid) {
     var result = {}
     const params = '?user_id='+uid
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/find-by-userid${params}`)
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/find-by-userid${params}`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -97,7 +97,7 @@ export async function getUserLogByTimeDbApiCall(uid, start, end) {
     var result = {}
     const params = 'start='+start + '&end='+end
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/users/${uid}/logs/get-by-time?${params}`)
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/users/${uid}/logs/get-by-time?${params}`)
         
         result['status-code'] = response.status
         if(result['status-code']==200) {
@@ -115,7 +115,7 @@ export async function getUserLogByTimeDbApiCall(uid, start, end) {
 export async function getLastFetchingDataTimestampDbApiCall(bid) {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/last-fetch-time`)
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/${bid}/last-fetch-time`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -132,7 +132,7 @@ export async function getLastFetchingDataTimestampDbApiCall(bid) {
 export async function setLastFetchingDataTimestampDbApiCall(bid, last){
     var result = {}
     try{
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/last-fetch-time`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/${bid}/last-fetch-time`, {
         method: 'POST',
         body: JSON.stringify({
             'last': last
@@ -156,7 +156,7 @@ export async function setLastFetchingDataTimestampDbApiCall(bid, last){
 export async function addLogsDbApiCall(uid, bid, logs) {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/${uid}/logs`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/${bid}/${uid}/logs`, {
         method: 'POST',
         body: JSON.stringify(logs),
         headers: { 'Content-type': 'application/json; charset=UTF-8' },
@@ -177,7 +177,7 @@ export async function addLogsDbApiCall(uid, bid, logs) {
 export async function unpairBandDbApiCall(bid) {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/bands/${bid}/unpair`)
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/bands/${bid}/unpair`)
         result['status-code'] = response.status
         if(result['status-code']==200) {
             result['response-data'] = await response.json()
@@ -194,7 +194,7 @@ export async function unpairBandDbApiCall(bid) {
 export async function deleteUserLogsApiCall(uid) {
     var result = {}
     try {
-        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/users/${uid}/logs`, {
+        const response = await fetch(`http://${miband_db_host}:${miband_db_port}/v1/users/${uid}/logs`, {
             method: 'DELETE'
         })
         result['status-code'] = response.status

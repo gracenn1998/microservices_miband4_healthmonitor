@@ -4,11 +4,11 @@ import datetime
 
 from database_construct.models import Miband4, ActivityRecord
 
-@app.route("/")
+@app.route("/v1/")
 def hello():
     return "Hello World!"
 
-@app.route("/bands", methods=['POST'])
+@app.route("/v1/bands", methods=['POST'])
 def add_band():
     bandinfo = request.json
     serial = bandinfo['serial']
@@ -41,7 +41,7 @@ def add_band():
 
 
 
-@app.route("/bands/<id>/update-new-user", methods=['PUT'])
+@app.route("/v1/bands/<id>/update-new-user", methods=['PUT'])
 def update_band_user(id):
     bandinfo = request.json
     sw_rev = bandinfo['software_revision']
@@ -69,7 +69,7 @@ def update_band_user(id):
 
     return response
 
-@app.route("/bands/<id>/unpair")
+@app.route("/v1/bands/<id>/unpair")
 def unpair_band(id):
     try:
         band=Miband4.query.filter_by(id=id).first()
@@ -85,7 +85,7 @@ def unpair_band(id):
 
     return response
 
-# @app.route("/getallband")
+# @app.route("/v1/getallband")
 # def get_all_bands():
 #     try:
 #         bands=Miband4.query.all()
@@ -93,7 +93,7 @@ def unpair_band(id):
 #     except Exception as e:
 # 	    return(str(e))
 
-@app.route("/bands/<id>")
+@app.route("/v1/bands/<id>")
 def get_band_by_id(id):
     try:
         band=Miband4.query.filter_by(id=id).first()
@@ -108,7 +108,7 @@ def get_band_by_id(id):
 
     return response
 
-@app.route("/bands/find-by-userid")
+@app.route("/v1/bands/find-by-userid")
 def get_band_by_user():
     uid = request.args.get('user_id')
     try:
@@ -126,7 +126,7 @@ def get_band_by_user():
 
     return response
 
-@app.route("/bands/find-by-serial")
+@app.route("/v1/bands/find-by-serial")
 def get_band_by_serial():
     serial = request.args.get('serial')
     try:
@@ -145,7 +145,7 @@ def get_band_by_serial():
     return response
 
 
-@app.route("/bands/<bid>/<uid>/logs", methods=['POST'])
+@app.route("/v1/bands/<bid>/<uid>/logs", methods=['POST'])
 def add_logs_of(uid, bid):
     logs = request.json
     for ts in logs:
@@ -177,7 +177,7 @@ def add_logs_of(uid, bid):
     db.session.commit()
     return response
 
-# @app.route("/getalllogs")
+# @app.route("/v1/getalllogs")
 # def get_all_logs():
 #     try:
 #         logs=ActivityRecord.query.all()
@@ -186,7 +186,7 @@ def add_logs_of(uid, bid):
 # 	    return(str(e))
 
 
-@app.route("/users/<uid>/logs")
+@app.route("/v1/users/<uid>/logs")
 def get_log_of_user(uid):
     try:
         logs=ActivityRecord.query.filter_by(user_id=uid)
@@ -206,7 +206,7 @@ def get_log_of_user(uid):
     
 
 
-@app.route("/users/<uid>/logs/get-by-time")
+@app.route("/v1/users/<uid>/logs/get-by-time")
 def get_log_by_timestamp_of(uid):
     start = request.args.get('start')
     end = request.args.get('end')
@@ -229,7 +229,7 @@ def get_log_by_timestamp_of(uid):
     
     return response
 
-@app.route("/bands/<id>/last-fetch-time")
+@app.route("/v1/bands/<id>/last-fetch-time")
 def get_last_fetch_time_of(id):
     try:
         band=Miband4.query.filter_by(id=id).first()
@@ -247,7 +247,7 @@ def get_last_fetch_time_of(id):
     
     return response
 
-@app.route("/bands/<id>/last-fetch-time", methods=['POST'])
+@app.route("/v1/bands/<id>/last-fetch-time", methods=['POST'])
 def set_last_time_of(id):
     data = request.json
     last_ts = datetime.datetime.strptime(data['last'], "%d.%m.%Y - %H:%M")
@@ -296,3 +296,7 @@ def delete_logs_of(userid):
         return '', 500
     
     return response
+
+@app.route("/v1.1/bands/new-upgrade")
+def new_upgrade():
+    return 'This is new api after upgrading'
